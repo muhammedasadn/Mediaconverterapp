@@ -15,6 +15,8 @@ import {
   EngineSelector,
   ConversionProgressCard,
   ConversionResultCard,
+  RetryErrorCard,
+  QueueStatusCapsule,
   AdvancedSettingsState,
   fadeUpVariant,
   staggerContainerVariant,
@@ -30,6 +32,7 @@ import {
   probeMediaFile,
   evaluateHybridRouting,
   WasmBrowserEngine,
+  CloudMediaEngine,
 } from '@universal/conversion-core';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -48,8 +51,8 @@ import {
 export default function HomePage() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
-  // Workflow State: 'idle' | 'configuring' | 'converting' | 'completed'
-  const [stage, setStage] = useState<'idle' | 'configuring' | 'converting' | 'completed'>('idle');
+  // Workflow State: 'idle' | 'configuring' | 'converting' | 'completed' | 'error'
+  const [stage, setStage] = useState<'idle' | 'configuring' | 'converting' | 'completed' | 'error'>('idle');
 
   // Active File & Probe Metadata
   const [file, setFile] = useState<File | null>(null);
@@ -64,6 +67,8 @@ export default function HomePage() {
   // In-flight conversion state
   const [progressPercent, setProgressPercent] = useState(0);
   const [conversionStage, setConversionStage] = useState('Initializing...');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [activeEngine, setActiveEngine] = useState<'device' | 'cloud'>('device');
   const [resultData, setResultData] = useState<{
     downloadUrl: string;
     outputFilename: string;
@@ -76,11 +81,9 @@ export default function HomePage() {
     setFile(selectedFile);
     setStage('configuring');
 
-    // Run client probe
     const probed = await probeMediaFile(selectedFile);
     setProbeResult(probed);
 
-    // Auto-select smart default target format
     const ext = selectedFile.name.split('.').pop()?.toLowerCase();
     if (ext === 'mp4' || ext === 'mov') {
       setTargetFormat(getFormatById('webm') || getFormatById('mp3')!);
@@ -106,14 +109,20 @@ export default function HomePage() {
   );
 
   // Execute Conversion
-  const handleStartConversion = async () => {
+  const handleStartConversion = async (overrideEngine?: 'device' | 'cloud') => {
     if (!file) return;
 
+    const chosenEngineType = overrideEngine || routing.engine;
+    setActiveEngine(chosenEngineType);
     setStage('converting');
-    setProgressPercent(10);
-    setConversionStage('Preparing encoder...');
+    setProgressPercent(8);
+    setConversionStage(
+      chosenEngineType === 'cloud'
+        ? 'Connecting to Cloud Turbo cluster...'
+        : 'Preparing on-device WebAssembly engine...'
+    );
 
-    const engine = new WasmBrowserEngine();
+    const engine = chosenEngineType === 'cloud' ? new CloudMediaEngine() : new WasmBrowserEngine();
 
     const request: ConversionRequest = {
       id: crypto.randomUUID(),
@@ -122,7 +131,7 @@ export default function HomePage() {
       inputMimeType: file.type,
       targetFormat: targetFormat.id,
       preset,
-      enginePreference,
+      enginePreference: chosenEngineType,
       video: {
         crf: advancedSettings.crf,
         fps: advancedSettings.fps,
@@ -148,9 +157,13 @@ export default function HomePage() {
       });
 
       setStage('completed');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Conversion failed:', err);
-      setStage('configuring');
+      setErrorMessage(
+        err?.message ||
+          'Your browser encountered memory limits while processing this video client-side.'
+      );
+      setStage('error');
     }
   };
 
@@ -226,7 +239,7 @@ export default function HomePage() {
             >
               <motion.div variants={fadeUpVariant} className="inline-block">
                 <span className="px-3.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-semibold text-cyan-400">
-                  ⚡ Next-Generation Media Engine
+                  ⚡ Next-Generation Hybrid Media Engine
                 </span>
               </motion.div>
 
@@ -241,7 +254,7 @@ export default function HomePage() {
                 variants={fadeUpVariant}
                 className="text-base sm:text-lg text-neutral-400 max-w-xl mx-auto"
               >
-                Instant on-device processing powered by WebAssembly. Your files never leave your browser unless you choose cloud turbo.
+                Instant on-device processing powered by WebAssembly, with automatic high-speed cloud cluster failover for heavy 4K encodes.
               </motion.p>
 
               {/* Primary Drop Zone */}
@@ -260,14 +273,12 @@ export default function HomePage() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              {/* File Card */}
               <FilePreviewCard
                 file={file}
                 probeResult={probeResult}
                 onRemove={handleReset}
               />
 
-              {/* Format Picker */}
               <GlassCard className="p-6">
                 <FormatSelector
                   selectedFormatId={targetFormat.id}
@@ -275,7 +286,6 @@ export default function HomePage() {
                 />
               </GlassCard>
 
-              {/* Preset Selector */}
               <GlassCard className="p-6">
                 <QualityPresetSelector
                   selectedPreset={preset}
@@ -284,13 +294,11 @@ export default function HomePage() {
                 />
               </GlassCard>
 
-              {/* Advanced Accordion */}
               <AdvancedSettingsAccordion
                 settings={advancedSettings}
                 onChange={setAdvancedSettings}
               />
 
-              {/* Hybrid Engine Routing */}
               <EngineSelector
                 engineMode={enginePreference}
                 resolvedEngine={routing.engine}
@@ -298,13 +306,12 @@ export default function HomePage() {
                 onChange={setEnginePreference}
               />
 
-              {/* Start Conversion Button */}
               <div className="pt-2 flex justify-end">
                 <CupertinoButton
                   variant="primary"
                   size="lg"
                   className="w-full sm:w-auto"
-                  onClick={handleStartConversion}
+                  onClick={() => handleStartConversion()}
                   rightIcon={<ArrowRight className="h-5 w-5" />}
                 >
                   Convert to {targetFormat.extension.toUpperCase()} Now
@@ -320,13 +327,19 @@ export default function HomePage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="py-10 max-w-xl mx-auto"
+              className="py-10 max-w-xl mx-auto space-y-4"
             >
+              {activeEngine === 'cloud' && (
+                <div className="flex justify-center">
+                  <QueueStatusCapsule />
+                </div>
+              )}
+
               <ConversionProgressCard
                 filename={file.name}
                 progressPercent={progressPercent}
                 stage={conversionStage}
-                engineUsed={routing.engine}
+                engineUsed={activeEngine}
                 onCancel={handleReset}
               />
             </motion.section>
@@ -351,9 +364,27 @@ export default function HomePage() {
               />
             </motion.section>
           )}
+
+          {/* STAGE 5: RESILIENT ERROR RECOVERY */}
+          {stage === 'error' && file && (
+            <motion.section
+              key="stage-error"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="py-8 max-w-xl mx-auto"
+            >
+              <RetryErrorCard
+                errorMessage={errorMessage}
+                suggestCloud={true}
+                onRetryCloud={() => handleStartConversion('cloud')}
+                onModifySettings={() => setStage('configuring')}
+              />
+            </motion.section>
+          )}
         </AnimatePresence>
 
-        {/* Trust Badges Strip (only shown on idle) */}
+        {/* Trust Badges Strip (shown when idle) */}
         {stage === 'idle' && (
           <>
             <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6">
@@ -372,8 +403,8 @@ export default function HomePage() {
                   <Zap className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">Instant Starts</h3>
-                  <p className="text-xs text-neutral-400">No queues or uploads for local conversions.</p>
+                  <h3 className="text-sm font-semibold text-white">Cloud Turbo Failover</h3>
+                  <p className="text-xs text-neutral-400">Instant multi-core cluster fallback for heavy 4K files.</p>
                 </div>
               </GlassCard>
 

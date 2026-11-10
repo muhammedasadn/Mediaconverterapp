@@ -1,9 +1,11 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import multipart from '@fastify/multipart';
 import { randomUUID } from 'crypto';
 import { healthRoutes } from './routes/health';
 import { jobRoutes } from './routes/jobs';
+import { streamRoutes } from './routes/stream';
 
 const PORT = Number(process.env.PORT) || 4000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -18,13 +20,20 @@ export async function buildServer() {
 
   // Security Headers
   await server.register(helmet, {
-    contentSecurityPolicy: false, // Managed by client PWA headers
+    contentSecurityPolicy: false,
   });
 
   // CORS Configuration
   await server.register(cors, {
     origin: process.env.ALLOWED_ORIGINS?.split(',') || true,
     credentials: true,
+  });
+
+  // Multipart Streaming for File Uploads (up to 2GB)
+  await server.register(multipart, {
+    limits: {
+      fileSize: 2 * 1024 * 1024 * 1024, // 2GB
+    },
   });
 
   // Global Error Handler
@@ -42,6 +51,7 @@ export async function buildServer() {
   // Register API Routes
   await server.register(healthRoutes, { prefix: '/api' });
   await server.register(jobRoutes, { prefix: '/api' });
+  await server.register(streamRoutes, { prefix: '/api' });
 
   return server;
 }
@@ -68,7 +78,6 @@ async function start() {
   }
 }
 
-// Start if run directly
 if (process.argv[1] && process.argv[1].endsWith('server.ts')) {
   start();
 }
