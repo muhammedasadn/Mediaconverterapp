@@ -75,7 +75,7 @@ jobs:
 
       # Build and Push Fastify API Image
       - name: Build & Push API Image (ARM64 & AMD64)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/api/Dockerfile
@@ -89,7 +89,7 @@ jobs:
 
       # Build and Push Native FFmpeg Worker Image
       - name: Build & Push Worker Image (ARM64 & AMD64)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/worker/Dockerfile
