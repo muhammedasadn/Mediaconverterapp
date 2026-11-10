@@ -1,10 +1,16 @@
 import type { NextConfig } from 'next';
 
+const isStandalone = process.env.BUILD_STANDALONE === 'true';
+const isStaticExport = process.env.STATIC_EXPORT === 'true' || process.env.NODE_ENV === 'production' && !isStandalone;
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
-  output: process.env.BUILD_STANDALONE === 'true' ? 'standalone' : undefined,
+  output: isStandalone ? 'standalone' : 'export',
+  images: {
+    unoptimized: true,
+  },
   transpilePackages: [
     '@universal/ui',
     '@universal/conversion-core',
@@ -17,6 +23,9 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react', 'framer-motion', '@universal/ui'],
   },
   async headers() {
+    if (isStaticExport) {
+      return [];
+    }
     return [
       {
         source: '/(.*)',

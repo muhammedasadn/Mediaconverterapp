@@ -1,0 +1,71 @@
+# ----------------------------------------------------------------------------
+# Universal Media Converter — Production Caddy Reverse Proxy Configuration
+# Automatic Let's Encrypt TLS, HTTP/3 QUIC, Zero-Cost Edge Hardening
+# ----------------------------------------------------------------------------
+
+{
+  # Global options
+  email {$ACME_EMAIL:admin@universalmediaconverter.app}
+  admin off
+  servers {
+    protocols h1 h2 h3
+  }
+}
+
+{$API_DOMAIN:api.universalmediaconverter.app} {
+  # 1. TLS & Strict Transport Security
+  header {
+    Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    Access-Control-Allow-Origin "{$ALLOWED_ORIGIN:https://universalmediaconverter.pages.dev}"
+    Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers "Content-Type, Authorization, x-request-id"
+    Access-Control-Allow-Credentials "true"
+  }
+
+  # 2. Preflight OPTIONS Handling
+  @options method OPTIONS
+  handle @options {
+    respond 204
+  }
+
+  # 3. Compression: Brotli and zstd for JSON and API telemetry (NOT for video/audio binaries)
+  encode zstd gzip {
+    match {
+      header Content-Type application/json*
+      header Content-Type text/*
+    }
+  }
+
+  # 4. Request Body Limit for Media Streaming (2 GB max)
+  request_body {
+    max_size 2GB
+  }
+
+  # 5. Reverse Proxy to Internal Fastify Container (Port 4000)
+  handle {
+    reverse_proxy api:4000 {
+      header_up Host {upstream_hostport}
+      header_up X-Real-IP {remote_host}
+      header_up X-Forwarded-For {remote_host}
+      header_up X-Forwarded-Proto {scheme}
+
+      # Health check upstream monitoring
+      health_uri /api/health
+      health_interval 15s
+      health_timeout 3s
+
+      # Streaming buffer configuration for large media uploads
+      flush_interval -1
+    }
+  }
+
+  # 6. Structured Privacy-Preserving Access Logging
+  log {
+    output stdout
+    format json
+    level INFO
+  }
+}

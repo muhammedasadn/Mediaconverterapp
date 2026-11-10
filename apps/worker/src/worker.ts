@@ -8,6 +8,7 @@ import fs from 'fs';
 const REDIS_CONNECTION = {
   host: process.env.REDIS_HOST || 'localhost',
   port: Number(process.env.REDIS_PORT) || 6379,
+  password: process.env.REDIS_PASSWORD || undefined,
 };
 
 const WORKING_DIR = process.env.WORKING_DIR || path.join(process.cwd(), 'temp_uploads');

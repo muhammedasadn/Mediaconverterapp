@@ -16,6 +16,7 @@ export function evaluateHybridRouting(
     isOnline?: boolean;
     isMobile?: boolean;
     availableMemoryMb?: number;
+    cloudEngineEnabled?: boolean;
   }
 ): RouteDecision {
   const isOnline = options?.isOnline ?? (typeof navigator !== 'undefined' ? navigator.onLine : true);
@@ -24,6 +25,11 @@ export function evaluateHybridRouting(
     (typeof navigator !== 'undefined'
       ? /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
       : false);
+
+  const env = typeof globalThis !== 'undefined' ? (globalThis as any).process?.env : undefined;
+  const cloudEngineEnabled =
+    options?.cloudEngineEnabled ??
+    (env ? env.NEXT_PUBLIC_CLOUD_ENGINE_ENABLED !== 'false' && env.CLOUD_ENGINE_ENABLED !== 'false' : true);
 
   const targetFormatDef = getFormatById(request.targetFormat);
   const targetCodec = request.video?.codec || targetFormatDef?.defaultVideoCodec;
@@ -36,7 +42,7 @@ export function evaluateHybridRouting(
   const deviceMaxMb = isMobile ? 35 : 100; // Stricter cap on mobile to prevent Safari WebKit OOM
 
   const canUseDevice = !requiresCloudCodec && fileSizeMb <= (isMobile ? 50 : 250);
-  const canUseCloud = isOnline;
+  const canUseCloud = isOnline && cloudEngineEnabled;
 
   // 1. Check explicit user preference override
   if (request.enginePreference === 'device') {
@@ -50,10 +56,12 @@ export function evaluateHybridRouting(
   }
 
   if (request.enginePreference === 'cloud') {
-    if (!isOnline) {
+    if (!isOnline || !cloudEngineEnabled) {
       return {
         engine: 'device',
-        reason: 'Cloud selected but device is offline. Running on device.',
+        reason: !cloudEngineEnabled
+          ? 'Cloud cluster is offline or disabled. Processing on device.'
+          : 'Cloud selected but device is offline. Running on device.',
         isOverride: true,
         canUseDevice: true,
         canUseCloud: false,
@@ -68,11 +76,13 @@ export function evaluateHybridRouting(
     };
   }
 
-  // 2. Offline guard
-  if (!isOnline) {
+  // 2. Offline or Cloud-Disabled guard
+  if (!isOnline || !cloudEngineEnabled) {
     return {
       engine: 'device',
-      reason: 'Offline mode active. Processing 100% on device.',
+      reason: !cloudEngineEnabled
+        ? 'Cloud cluster offline. Processing 100% on device with zero external latency.'
+        : 'Offline mode active. Processing 100% on device.',
       isOverride: false,
       canUseDevice: true,
       canUseCloud: false,

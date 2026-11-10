@@ -1,0 +1,15 @@
+# ----------------------------------------------------------------------------
+# Universal Media Converter — Cloudflare Pages SPA Routing & Redirects
+# ----------------------------------------------------------------------------
+
+# Well-known security.txt redirect
+/.well-known/security.txt    /.well-known/security.txt    200
+
+# Canonical redirects
+/convert                     /                            301
+/tools/compress              /compress                    301
+/tools/edit                  /edit                        301
+/tools/batch                 /batch                       301
+
+# SPA fallback rule for client-side HTML5 history navigation
+/*                           /index.html                  200

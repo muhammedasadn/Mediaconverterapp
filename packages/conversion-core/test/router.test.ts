@@ -103,4 +103,28 @@ describe('Hybrid Engine Router Heuristics', () => {
 
     assert.equal(decision.engine, 'device');
   });
+
+  it('gracefully degrades to device engine when cloud cluster is disabled or offline', () => {
+    const decision = evaluateHybridRouting(
+      200 * 1024 * 1024, // 200MB (normally cloud)
+      baseRequest,
+      { isOnline: true, isMobile: false, cloudEngineEnabled: false }
+    );
+
+    assert.equal(decision.engine, 'device');
+    assert.equal(decision.canUseCloud, false);
+    assert.match(decision.reason, /offline|disabled/i);
+  });
+
+  it('forces device fallback when user selects cloud preference but cloud cluster is disabled', () => {
+    const decision = evaluateHybridRouting(
+      50 * 1024 * 1024,
+      { ...baseRequest, enginePreference: 'cloud' },
+      { isOnline: true, isMobile: false, cloudEngineEnabled: false }
+    );
+
+    assert.equal(decision.engine, 'device');
+    assert.equal(decision.canUseCloud, false);
+    assert.equal(decision.isOverride, true);
+  });
 });

@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import path from 'path';
 import fs from 'fs';
 import { validateMediaSignature, parseYouTubeUrl } from '@universal/conversion-core';
+import { assertDiskCapacity } from '../services/disk-watchdog';
 
 const AnalyzeSchema = z.object({
   url: z.string().url(),
@@ -187,6 +188,9 @@ export const importRoutes: FastifyPluginAsync = async (server) => {
     }
 
     const jobId = randomUUID();
+    const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), 'temp_uploads');
+    assertDiskCapacity(uploadDir);
+
     const jobRecord: ImportJobRecord = {
       id: jobId,
       url: parsed.data.url,
@@ -199,7 +203,6 @@ export const importRoutes: FastifyPluginAsync = async (server) => {
     };
     activeImportJobs.set(jobId, jobRecord);
 
-    const uploadDir = process.env.UPLOAD_DIR || '/tmp/universal-media/uploads';
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }

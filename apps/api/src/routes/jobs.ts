@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { pipeline } from 'stream/promises';
+import { assertDiskCapacity } from '../services/disk-watchdog';
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'temp_uploads');
 if (!fs.existsSync(UPLOAD_DIR)) {
@@ -14,6 +15,8 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 export const jobRoutes: FastifyPluginAsync = async (fastify) => {
   // 1. Streaming Chunked Upload directly to disk/storage
   fastify.post('/jobs/upload', async (request, reply) => {
+    assertDiskCapacity(UPLOAD_DIR);
+
     const data = await request.file();
     if (!data) {
       return reply.status(400).send({
@@ -41,6 +44,8 @@ export const jobRoutes: FastifyPluginAsync = async (fastify) => {
 
   // 2. Submit conversion job to BullMQ queue
   fastify.post('/jobs', async (request, reply) => {
+    assertDiskCapacity(UPLOAD_DIR);
+
     const parseResult = ConversionRequestSchema.safeParse(request.body);
 
     if (!parseResult.success) {

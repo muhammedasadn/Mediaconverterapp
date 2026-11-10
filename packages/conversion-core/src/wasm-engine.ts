@@ -15,7 +15,23 @@ export async function getSharedFFmpeg(): Promise<any> {
     sharedFFmpegPromise = (async () => {
       const { FFmpeg } = await import('@ffmpeg/ffmpeg');
       const instance = new FFmpeg();
-      await instance.load();
+
+      if (typeof window !== 'undefined') {
+        try {
+          const { toBlobURL } = await import('@ffmpeg/util');
+          const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+          await instance.load({
+            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+          });
+        } catch (cdnErr) {
+          console.warn('[WasmBrowserEngine] Blob URL loading failed, attempting direct load:', cdnErr);
+          await instance.load();
+        }
+      } else {
+        await instance.load();
+      }
+
       sharedFFmpegInstance = instance;
       return instance;
     })().catch((err) => {
