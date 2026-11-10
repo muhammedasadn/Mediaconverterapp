@@ -1,0 +1,97 @@
+import { FormatDefinition } from './types';
+
+export const VIDEO_FORMATS: Record<string, FormatDefinition> = {
+  mp4: {
+    id: 'mp4',
+    name: 'MP4 Video',
+    extension: 'mp4',
+    mimeType: 'video/mp4',
+    category: 'video',
+    description: 'Universal compatibility across Apple, Android, Windows, and web players.',
+    isRecommended: true,
+    supportsBrowserWasm: true,
+    supportedVideoCodecs: [
+      { id: 'libx264', name: 'H.264 / AVC', description: 'Maximum universal playback compatibility.' },
+      { id: 'libx265', name: 'H.265 / HEVC', description: 'High efficiency, 50% smaller sizes. Cloud suggested.', requiresCloud: true },
+      { id: 'libaom-av1', name: 'AV1', description: 'Next-gen royalty-free ultra compression.', requiresCloud: true },
+    ],
+    supportedAudioCodecs: [
+      { id: 'aac', name: 'AAC', description: 'Industry standard audio stream.' },
+      { id: 'mp3', name: 'MP3', description: 'Legacy compatibility.' },
+    ],
+    defaultVideoCodec: 'libx264',
+    defaultAudioCodec: 'aac',
+  },
+  webm: {
+    id: 'webm',
+    name: 'WebM Video',
+    extension: 'webm',
+    mimeType: 'video/webm',
+    category: 'video',
+    description: 'Open web video format optimized for HTML5 and modern browsers.',
+    supportsBrowserWasm: true,
+    supportedVideoCodecs: [
+      { id: 'libvpx-vp9', name: 'VP9', description: 'High definition web streaming codec.' },
+      { id: 'libvpx', name: 'VP8', description: 'Classic WebM video.' },
+      { id: 'libaom-av1', name: 'AV1', description: 'Next-gen open video codec.', requiresCloud: true },
+    ],
+    supportedAudioCodecs: [
+      { id: 'libopus', name: 'Opus', description: 'Ultra-low latency, crystal-clear audio.' },
+      { id: 'libvorbis', name: 'Vorbis', description: 'Standard Ogg audio stream.' },
+    ],
+    defaultVideoCodec: 'libvpx-vp9',
+    defaultAudioCodec: 'libopus',
+  },
+  mov: {
+    id: 'mov',
+    name: 'QuickTime MOV',
+    extension: 'mov',
+    mimeType: 'video/quicktime',
+    category: 'video',
+    description: 'Native Apple QuickTime format. Ideal for Final Cut and macOS editing.',
+    supportsBrowserWasm: true,
+    supportedVideoCodecs: [
+      { id: 'prores', name: 'Apple ProRes', description: 'Professional editing codec. Cloud required.', requiresCloud: true },
+      { id: 'libx264', name: 'H.264', description: 'QuickTime compatible H.264.' },
+    ],
+    supportedAudioCodecs: [
+      { id: 'aac', name: 'AAC', description: 'Standard stereo audio.' },
+      { id: 'pcm_s16le', name: 'PCM Uncompressed', description: 'Lossless audio.', isLossless: true },
+    ],
+    defaultVideoCodec: 'libx264',
+    defaultAudioCodec: 'aac',
+  },
+  mkv: {
+    id: 'mkv',
+    name: 'Matroska MKV',
+    extension: 'mkv',
+    mimeType: 'video/x-matroska',
+    category: 'video',
+    description: 'Flexible container capable of storing unlimited audio tracks and subtitles.',
+    supportsBrowserWasm: true,
+    supportedVideoCodecs: [
+      { id: 'libx264', name: 'H.264', description: 'Standard AVC.' },
+      { id: 'libx265', name: 'HEVC', description: 'High efficiency MKV.', requiresCloud: true },
+    ],
+    supportedAudioCodecs: [
+      { id: 'aac', name: 'AAC', description: 'AAC audio.' },
+      { id: 'flac', name: 'FLAC', description: 'Lossless audio stream.', isLossless: true },
+    ],
+    defaultVideoCodec: 'libx264',
+    defaultAudioCodec: 'aac',
+  },
+  gif: {
+    id: 'gif',
+    name: 'Animated GIF',
+    extension: 'gif',
+    mimeType: 'image/gif',
+    category: 'video',
+    description: 'Looping animated image without audio. Universal social media sharing.',
+    supportsBrowserWasm: true,
+    supportedVideoCodecs: [
+      { id: 'gif', name: 'GIF PaletteGen', description: 'High-quality 256-color palette rendering.' },
+    ],
+    supportedAudioCodecs: [],
+    defaultVideoCodec: 'gif',
+  },
+};
