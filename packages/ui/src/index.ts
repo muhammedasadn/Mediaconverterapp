@@ -21,3 +21,9 @@ export * from './components/ConversionResultCard';
 export * from './components/CloudUploadProgress';
 export * from './components/RetryErrorCard';
 export * from './components/QueueStatusCapsule';
+
+export * from './components/SplitComparisonViewer';
+export * from './components/TargetSizeCompressor';
+export * from './components/TimelineTrimEditor';
+export * from './components/BatchQueueManager';
+export * from './components/GifMakerStudio';

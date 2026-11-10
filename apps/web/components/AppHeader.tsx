@@ -43,6 +43,17 @@ export function AppHeader({ onOpenCommandPalette }: AppHeaderProps) {
 
         {/* Right Controls */}
         <div className="flex items-center gap-2">
+          {/* Studio Links */}
+          <Link href="/compress" className="hidden lg:inline-block text-xs text-neutral-400 hover:text-white px-2 py-1 transition-colors">
+            Compress
+          </Link>
+          <Link href="/edit" className="hidden lg:inline-block text-xs text-neutral-400 hover:text-white px-2 py-1 transition-colors">
+            Trim/Cut
+          </Link>
+          <Link href="/batch" className="hidden lg:inline-block text-xs text-neutral-400 hover:text-white px-2 py-1 transition-colors">
+            Batch
+          </Link>
+
           {/* Motion Playground Link */}
           <Link href="/dev/motion">
             <CupertinoButton variant="ghost" size="sm" leftIcon={<PlaySquare className="h-4 w-4 text-cyan-400" />}>
