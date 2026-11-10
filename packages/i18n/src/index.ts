@@ -1,3 +1,5 @@
+import { TRANSLATIONS } from './translations';
+
 export * from './translations';
 
 export function getTranslation(lang: string, key: string): string {

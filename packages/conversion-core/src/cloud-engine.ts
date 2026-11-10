@@ -1,6 +1,6 @@
-import { MediaEngine, ConversionProgress, ConversionResult } from './engine';
-import { ConversionRequest } from '@universal/job-contracts';
-import { MediaProbeResult } from '@universal/format-registry';
+import type { MediaEngine, ConversionProgress, ConversionResult } from './engine';
+import type { ConversionRequest } from '@universal/job-contracts';
+import type { MediaProbeResult } from '@universal/format-registry';
 import { probeMediaFile } from './probe';
 
 export class CloudMediaEngine implements MediaEngine {
@@ -33,7 +33,9 @@ export class CloudMediaEngine implements MediaEngine {
       stage: 'Connecting to Cloud Turbo cluster...',
     });
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const apiUrl =
+      (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.NEXT_PUBLIC_API_URL) ||
+      'http://localhost:4000';
 
     // Step 1: Upload file to Cloud API with upload progress
     const uploadedFilename = await this.uploadFileWithProgress(apiUrl, file, (percent) => {
@@ -167,7 +169,9 @@ export class CloudMediaEngine implements MediaEngine {
       this.activeEventSource.close();
       this.activeEventSource = null;
     }
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const apiUrl =
+      (typeof globalThis !== 'undefined' && (globalThis as any).process?.env?.NEXT_PUBLIC_API_URL) ||
+      'http://localhost:4000';
     try {
       await fetch(`${apiUrl}/api/jobs/${jobId}/cancel`, { method: 'POST' });
     } catch {

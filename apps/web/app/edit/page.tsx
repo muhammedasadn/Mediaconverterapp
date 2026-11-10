@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { MobileTabBar } from '../../components/MobileTabBar';
 import {
   DropZonePrimitive,
   TimelineTrimEditor,
@@ -18,6 +17,7 @@ export default function EditTrimPage() {
   const [file, setFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [trimRange, setTrimRange] = useState<{ start: number; end: number }>({ start: 0, end: 60 });
+  const [trimMode, setTrimMode] = useState<'lossless' | 'precise'>('lossless');
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
@@ -40,14 +40,24 @@ export default function EditTrimPage() {
       inputSizeBytes: file.size,
       inputMimeType: file.type,
       targetFormat: 'mp4',
-      preset: 'lossless',
+      preset: trimMode === 'lossless' ? 'lossless' : 'balanced',
       enginePreference: 'device',
+      trim: {
+        startTimeSeconds: trimRange.start,
+        endTimeSeconds: trimRange.end,
+        mode: trimMode,
+      },
       createdAt: new Date().toISOString(),
     };
 
     try {
+      let lastProgressTick = 0;
       const result = await engine.convert(file, req, (p) => {
-        setProgress(p.progressPercent);
+        const now = Date.now();
+        if (p.progressPercent === 100 || p.progressPercent <= 20 || now - lastProgressTick >= 80) {
+          lastProgressTick = now;
+          setProgress(p.progressPercent);
+        }
       });
 
       const url = URL.createObjectURL(result.outputBlob);
@@ -93,7 +103,10 @@ export default function EditTrimPage() {
                 <TimelineTrimEditor
                   mediaSrc={fileUrl || ''}
                   durationSeconds={60}
-                  onTrimChange={(start, end) => setTrimRange({ start, end })}
+                  onTrimChange={(start, end, mode) => {
+                    setTrimRange({ start, end });
+                    if (mode) setTrimMode(mode);
+                  }}
                 />
 
                 <div className="flex justify-between items-center pt-2">
@@ -113,7 +126,7 @@ export default function EditTrimPage() {
                     onClick={handleStartTrim}
                     rightIcon={<ArrowRight className="h-4 w-4" />}
                   >
-                    Export Trimmed Clip ({Math.round(trimRange.end - trimRange.start)}s)
+                    Export {trimMode === 'lossless' ? '⚡ Lossless' : '🎯 Precise'} ({Math.round(trimRange.end - trimRange.start)}s)
                   </CupertinoButton>
                 </div>
               </>
@@ -146,7 +159,6 @@ export default function EditTrimPage() {
         )}
       </main>
 
-      <MobileTabBar />
     </div>
   );
 }

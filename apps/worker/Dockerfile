@@ -1,20 +1,24 @@
+# ----------------------------------------------------------------------------
+# Universal Media Converter — Production FFmpeg Native Worker Dockerfile (ARM64 / AMD64)
+# Multi-stage build with native hardware-accelerated FFmpeg & non-root isolation
+# ----------------------------------------------------------------------------
+
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-RUN apk add --no-cache ffmpeg
+RUN corepack enable
 
-COPY package.json pnpm-workspace.yaml turbo.json ./
+COPY package.json pnpm-workspace.yaml turbo.json pnpm-lock.yaml* ./
 COPY packages/ ./packages/
 COPY apps/worker/ ./apps/worker/
 
-WORKDIR /app/apps/worker
-
-RUN corepack enable && pnpm install --filter @universal/worker...
-RUN pnpm build
+RUN pnpm install --filter @universal/worker...
+RUN pnpm --filter @universal/worker build
 
 FROM node:22-alpine AS runner
 
+# Install native FFmpeg with x264, lame, opus, and hardware acceleration libraries
 RUN apk add --no-cache \
     ffmpeg \
     libva \
@@ -23,14 +27,19 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV WORKING_DIR=/data/temp_uploads
 
-RUN mkdir -p /data/temp_uploads
+# Create dedicated non-root service user and group
+RUN addgroup -g 10001 -S appgroup && \
+    adduser -u 10001 -S appuser -G appgroup
 
-COPY --from=builder /app/apps/worker/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/worker/package.json ./package.json
+# Create media working storage with non-root ownership
+RUN mkdir -p /var/lib/media-storage/uploads /var/lib/media-storage/output && \
+    chown -R appuser:appgroup /var/lib/media-storage /app
 
-VOLUME ["/data/temp_uploads"]
+COPY --from=builder --chown=appuser:appgroup /app/apps/worker/dist ./dist
+COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup /app/apps/worker/package.json ./package.json
+
+USER appuser
 
 CMD ["node", "dist/worker.js"]

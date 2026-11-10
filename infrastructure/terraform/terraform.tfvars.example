@@ -1,0 +1,13 @@
+# Copy this file to terraform.tfvars and fill in your OCI tenancy credentials
+tenancy_ocid            = "ocid1.tenancy.oc1..aaaaaaaexample"
+user_ocid               = "ocid1.user.oc1..aaaaaaaexample"
+fingerprint             = "20:3b:97:13:55:1c:..."
+private_key_path        = "~/.oci/oci_api_key.pem"
+region                  = "us-ashburn-1" # MUST be your tenancy Home Region
+compartment_ocid        = "ocid1.compartment.oc1..aaaaaaaexample"
+ssh_public_key          = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI..."
+
+# Free-Tier Locked Parameters (Do not modify)
+ocpu_count              = 2
+memory_in_gbs           = 12
+boot_volume_size_in_gbs = 180

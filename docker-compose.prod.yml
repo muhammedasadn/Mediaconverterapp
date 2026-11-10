@@ -1,0 +1,158 @@
+# ----------------------------------------------------------------------------
+# Universal Media Converter — Production Docker Compose Stack
+# Architecture: Oracle Cloud Always Free ARM64 (2 OCPU / 12 GB RAM / 180 GB Disk)
+# Strict Isolation: Ports 4000 and 6379 NEVER exposed. Only Caddy exposes 80/443.
+# ----------------------------------------------------------------------------
+
+version: '3.8'
+
+networks:
+  converter-net:
+    driver: bridge
+    internal: false
+
+volumes:
+  redis_data:
+  caddy_data:
+  caddy_config:
+
+services:
+  # --------------------------------------------------------------------------
+  # 1. Edge Reverse Proxy & TLS Engine (Caddy)
+  # --------------------------------------------------------------------------
+  caddy:
+    image: caddy:2-alpine
+    container_name: converter-caddy
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp' # HTTP/3 QUIC
+    environment:
+      - API_DOMAIN=${API_DOMAIN:-api.universalmediaconverter.app}
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:-https://universalmediaconverter.pages.dev}
+      - ACME_EMAIL=${ACME_EMAIL:-admin@universalmediaconverter.app}
+    volumes:
+      - ./infrastructure/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - converter-net
+    depends_on:
+      api:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 128M
+    security_opt:
+      - no-new-privileges:true
+
+  # --------------------------------------------------------------------------
+  # 2. Redis Message Broker & BullMQ Queue (Internal Only)
+  # --------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: converter-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 512mb
+      --maxmemory-policy noeviction
+      --appendonly yes
+      --save 900 1
+      --save 300 10
+    volumes:
+      - redis_data:/data
+    networks:
+      - converter-net
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 512M
+    security_opt:
+      - no-new-privileges:true
+
+  # --------------------------------------------------------------------------
+  # 3. High-Throughput Fastify API & Telemetry (Internal Only)
+  # --------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: ghcr.io/muhammedasadn/universal-media-api:latest
+    container_name: converter-api
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - HOST=0.0.0.0
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - UPLOAD_DIR=/var/lib/media-storage/uploads
+      - OUTPUT_DIR=/var/lib/media-storage/output
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGIN:-https://universalmediaconverter.pages.dev}
+      - MAX_IMPORT_SIZE_MB=500
+    volumes:
+      - /var/lib/media-storage:/var/lib/media-storage
+    networks:
+      - converter-net
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:4000/api/health']
+      interval: 15s
+      timeout: 3s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 1536M
+    security_opt:
+      - no-new-privileges:true
+
+  # --------------------------------------------------------------------------
+  # 4. Native FFmpeg BullMQ Worker Engine (Internal Only)
+  # --------------------------------------------------------------------------
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    image: ghcr.io/muhammedasadn/universal-media-worker:latest
+    container_name: converter-worker
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - CONCURRENCY=2
+      - FF_THREADS=2
+      - WORKING_DIR=/var/lib/media-storage/uploads
+      - STORAGE_TTL_MS=3600000
+      - CLEANUP_INTERVAL_MS=300000
+    volumes:
+      - /var/lib/media-storage:/var/lib/media-storage
+    networks:
+      - converter-net
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 6144M
+    security_opt:
+      - no-new-privileges:true

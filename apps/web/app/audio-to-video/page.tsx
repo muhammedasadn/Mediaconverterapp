@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { MobileTabBar } from '../../components/MobileTabBar';
 import {
   DropZonePrimitive,
   AudioToVideoStudio,
@@ -115,7 +114,6 @@ export default function AudioToVideoPage() {
         )}
       </main>
 
-      <MobileTabBar />
     </div>
   );
 }

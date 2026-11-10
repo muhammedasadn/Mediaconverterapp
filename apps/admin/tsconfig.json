@@ -1,11 +1,29 @@
 {
   "extends": "@universal/tsconfig/nextjs.json",
   "compilerOptions": {
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "paths": {
-      "@/*": ["./*"]
-    }
+      "@/*": ["./*"],
+      "@universal/ui": ["../../packages/ui/src/index.ts"],
+      "@universal/job-contracts": ["../../packages/job-contracts/src/index.ts"],
+      "@universal/format-registry": ["../../packages/format-registry/src/index.ts"],
+      "@universal/conversion-core": ["../../packages/conversion-core/src/index.ts"],
+      "@universal/i18n": ["../../packages/i18n/src/index.ts"]
+    },
+    "noEmit": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "../../packages/ui/src/next.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

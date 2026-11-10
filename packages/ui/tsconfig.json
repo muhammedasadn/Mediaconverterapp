@@ -2,7 +2,13 @@
   "extends": "@universal/tsconfig/base.json",
   "compilerOptions": {
     "jsx": "react-jsx",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "paths": {
+      "@universal/job-contracts": ["../job-contracts/src/index.ts"],
+      "@universal/format-registry": ["../format-registry/src/index.ts"],
+      "@universal/conversion-core": ["../conversion-core/src/index.ts"],
+      "@universal/i18n": ["../i18n/src/index.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

@@ -6,6 +6,8 @@ import { randomUUID } from 'crypto';
 import { healthRoutes } from './routes/health';
 import { jobRoutes } from './routes/jobs';
 import { streamRoutes } from './routes/stream';
+import { importRoutes } from './routes/import';
+import { youtubeRoutes } from './routes/youtube';
 
 const PORT = Number(process.env.PORT) || 4000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -37,7 +39,7 @@ export async function buildServer() {
   });
 
   // Global Error Handler
-  server.setErrorHandler((error, request, reply) => {
+  server.setErrorHandler((error: any, request, reply) => {
     request.log.error(error);
     reply.status(error.statusCode || 500).send({
       success: false,
@@ -52,6 +54,8 @@ export async function buildServer() {
   await server.register(healthRoutes, { prefix: '/api' });
   await server.register(jobRoutes, { prefix: '/api' });
   await server.register(streamRoutes, { prefix: '/api' });
+  await server.register(importRoutes, { prefix: '/api' });
+  await server.register(youtubeRoutes, { prefix: '/api' });
 
   return server;
 }

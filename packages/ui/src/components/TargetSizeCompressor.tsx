@@ -39,10 +39,13 @@ export function TargetSizeCompressor({
     Math.round(((originalSizeBytes - targetSizeBytes) / originalSizeBytes) * 100)
   );
 
-  // Compute calculated video bitrate
+  const isAlreadySmaller = originalSizeBytes > 0 && originalSizeBytes <= targetSizeBytes;
+
+  // Compute calculated video bitrate with 5% container overhead safety buffer
+  const safeTargetBytes = targetSizeBytes * 0.95;
   const calculatedBitrateKbps = Math.max(
-    100,
-    Math.round((targetSizeBytes * 8) / (durationSeconds * 1000) - 128) // subtracting 128k audio
+    64,
+    Math.round((safeTargetBytes * 8) / (Math.max(1, durationSeconds) * 1000) - 128)
   );
 
   return (
@@ -114,11 +117,24 @@ export function TargetSizeCompressor({
         </div>
       </div>
 
-      {/* Bitrate Telemetry */}
-      <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/5 text-[11px] font-mono text-neutral-400">
-        <span>Calculated Target Video Bitrate:</span>
-        <span className="font-semibold text-white">{calculatedBitrateKbps} kbps</span>
+      {/* Bitrate Telemetry & Container Margin Notice */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/5 text-[11px] font-mono text-neutral-400">
+          <span>Calculated Target Video Bitrate:</span>
+          <span className="font-semibold text-white">{calculatedBitrateKbps} kbps</span>
+        </div>
+        <div className="flex items-center justify-between text-[10px] text-zinc-500 px-1 font-mono">
+          <span>Includes 5% safety margin for MP4 container metadata</span>
+          <span>Dual-pass capable</span>
+        </div>
       </div>
+
+      {isAlreadySmaller && (
+        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 flex items-center gap-2">
+          <span>⚠️</span>
+          <span>Source file is already smaller than the chosen target. Re-encoding is not recommended to avoid generation loss.</span>
+        </div>
+      )}
     </div>
   );
 }

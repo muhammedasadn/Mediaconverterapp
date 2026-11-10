@@ -4,3 +4,7 @@ export * from './router';
 export * from './wasm-engine';
 export * from './cloud-engine';
 export * from './magic-bytes';
+export * from './trim-engine';
+export * from './compression-calculator';
+export * from './youtube-parser';
+export * from './quality-calculator';

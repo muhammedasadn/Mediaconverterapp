@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { MobileTabBar } from '../../components/MobileTabBar';
 import {
   DropZonePrimitive,
   BatchQueueManager,
@@ -117,7 +116,6 @@ export default function BatchQueuePage() {
         />
       </main>
 
-      <MobileTabBar />
     </div>
   );
 }

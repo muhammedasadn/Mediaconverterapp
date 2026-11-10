@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import { motion, HTMLMotionProps } from 'framer-motion';
 
 export interface GlassCardProps extends HTMLMotionProps<'div'> {
+  children?: React.ReactNode;
   spotlight?: boolean;
   intensity?: 'subtle' | 'medium' | 'deep';
 }
