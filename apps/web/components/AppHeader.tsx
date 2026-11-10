@@ -44,14 +44,20 @@ export function AppHeader({ onOpenCommandPalette }: AppHeaderProps) {
         {/* Right Controls */}
         <div className="flex items-center gap-2">
           {/* Studio Links */}
-          <Link href="/compress" className="hidden lg:inline-block text-xs text-neutral-400 hover:text-white px-2 py-1 transition-colors">
+          <Link href="/compress" className="hidden xl:inline-block text-xs text-neutral-400 hover:text-white px-2 py-1 transition-colors">
             Compress
           </Link>
-          <Link href="/edit" className="hidden lg:inline-block text-xs text-neutral-400 hover:text-white px-2 py-1 transition-colors">
+          <Link href="/edit" className="hidden xl:inline-block text-xs text-neutral-400 hover:text-white px-2 py-1 transition-colors">
             Trim/Cut
           </Link>
-          <Link href="/batch" className="hidden lg:inline-block text-xs text-neutral-400 hover:text-white px-2 py-1 transition-colors">
+          <Link href="/audio-to-video" className="hidden xl:inline-block text-xs text-neutral-400 hover:text-white px-2 py-1 transition-colors">
+            Audio→Video
+          </Link>
+          <Link href="/batch" className="hidden xl:inline-block text-xs text-neutral-400 hover:text-white px-2 py-1 transition-colors">
             Batch
+          </Link>
+          <Link href="/info" className="hidden xl:inline-block text-xs text-neutral-400 hover:text-white px-2 py-1 transition-colors">
+            Media Info
           </Link>
 
           {/* Motion Playground Link */}

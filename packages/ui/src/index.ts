@@ -27,3 +27,8 @@ export * from './components/TargetSizeCompressor';
 export * from './components/TimelineTrimEditor';
 export * from './components/BatchQueueManager';
 export * from './components/GifMakerStudio';
+
+export * from './components/AudioWaveformVisualizer';
+export * from './components/AspectRatioSelector';
+export * from './components/AudioToVideoStudio';
+export * from './components/MediaInfoInspector';
