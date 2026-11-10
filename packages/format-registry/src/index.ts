@@ -1,4 +1,4 @@
-import { FormatDefinition, MediaCategory } from './types';
+import type { FormatDefinition, MediaCategory } from './types';
 import { VIDEO_FORMATS } from './video';
 import { AUDIO_FORMATS } from './audio';
 

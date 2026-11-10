@@ -1,4 +1,4 @@
-import { FormatDefinition } from './types';
+import type { FormatDefinition } from './types';
 
 export const VIDEO_FORMATS: Record<string, FormatDefinition> = {
   mp4: {

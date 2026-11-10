@@ -1,4 +1,4 @@
-import { ConversionRequest, EngineMode } from '@universal/job-contracts';
+import type { ConversionRequest } from '@universal/job-contracts';
 import { getFormatById } from '@universal/format-registry';
 
 export interface RouteDecision {

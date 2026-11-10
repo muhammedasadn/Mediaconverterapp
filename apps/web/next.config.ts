@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     '@universal/format-registry',
     '@universal/job-contracts',
     '@universal/config-tailwind',
+    '@universal/i18n',
   ],
   async headers() {
     return [

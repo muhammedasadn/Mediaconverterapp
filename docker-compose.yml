@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # ----------------------------------------------------------------------------
+  # High-Speed In-Memory Message Broker & Job Queue
+  # ----------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: universal-media-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # ----------------------------------------------------------------------------
+  # High-Throughput Fastify API & SSE Telemetry Server
+  # ----------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: universal-media-api
+    ports:
+      - '4000:4000'
+    environment:
+      - PORT=4000
+      - HOST=0.0.0.0
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - UPLOAD_DIR=/tmp/universal-media/uploads
+      - OUTPUT_DIR=/tmp/universal-media/output
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+    volumes:
+      - media_storage:/tmp/universal-media
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ----------------------------------------------------------------------------
+  # Native FFmpeg 7.x BullMQ Worker Engine
+  # ----------------------------------------------------------------------------
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    container_name: universal-media-worker
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - WORKER_CONCURRENCY=2
+      - STORAGE_TTL_MS=3600000
+      - CLEANUP_INTERVAL_MS=300000
+      - UPLOAD_DIR=/tmp/universal-media/uploads
+      - OUTPUT_DIR=/tmp/universal-media/output
+    volumes:
+      - media_storage:/tmp/universal-media
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ----------------------------------------------------------------------------
+  # Next.js 15 PWA Frontend (Cupertino Glassmorphism Interface)
+  # ----------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: universal-media-web
+    ports:
+      - '3000:3000'
+    environment:
+      - PORT=3000
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  media_storage:

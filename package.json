@@ -6,7 +6,8 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
-    "test": "turbo run test",
+    "test": "node --experimental-strip-types --import ./scripts/test-loader.mjs --test packages/conversion-core/test/router.test.ts packages/conversion-core/test/magic-bytes.test.ts apps/worker/test/command-builder.test.ts",
+    "test:unit": "node --experimental-strip-types --import ./scripts/test-loader.mjs --test packages/conversion-core/test/router.test.ts packages/conversion-core/test/magic-bytes.test.ts apps/worker/test/command-builder.test.ts",
     "typecheck": "turbo run typecheck",
     "clean": "turbo run clean && rm -rf node_modules"
   },

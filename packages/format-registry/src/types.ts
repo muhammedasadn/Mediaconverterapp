@@ -1,4 +1,6 @@
+export const TYPES_VERSION = '1.0.0';
 export type MediaCategory = 'video' | 'audio' | 'image';
+
 
 export type QualityPreset = 'small' | 'balanced' | 'best' | 'lossless';
 

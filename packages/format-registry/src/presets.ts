@@ -1,4 +1,4 @@
-import { QualityPreset } from './types';
+import type { QualityPreset } from './types';
 
 export interface PresetConfiguration {
   id: QualityPreset;

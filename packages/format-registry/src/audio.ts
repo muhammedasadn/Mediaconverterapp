@@ -1,4 +1,4 @@
-import { FormatDefinition } from './types';
+import type { FormatDefinition } from './types';
 
 export const AUDIO_FORMATS: Record<string, FormatDefinition> = {
   mp3: {
