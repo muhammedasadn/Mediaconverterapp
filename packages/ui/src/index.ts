@@ -37,3 +37,12 @@ export * from './components/HistoryManager';
 export * from './components/PWAInstallPromptCard';
 export * from './components/SettingsPanel';
 export * from './components/AuthAccountModal';
+
+export * from './components/CommandPalette';
+export * from './components/CupertinoNavbar';
+export * from './components/CupertinoBottomNav';
+export * from './components/TrustStrip';
+export * from './components/HowItWorksSection';
+export * from './components/SupportedFormatsGrid';
+export * from './components/FaqSection';
+export * from './components/CupertinoFooter';

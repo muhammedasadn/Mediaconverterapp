@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { CupertinoShell } from './shell';
 
 export const metadata: Metadata = {
   title: 'Universal Media Converter — Fast, Private Video & Audio Tools',
@@ -23,10 +24,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" data-theme="dark" className="dark">
-      <body className="antialiased bg-noise relative pb-20 md:pb-0">
+      <body className="antialiased bg-noise relative">
         {/* Ambient Top Glow */}
         <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-gradient-to-b from-blue-600/15 via-cyan-500/10 to-transparent blur-[120px] pointer-events-none -z-10" />
-        {children}
+        <CupertinoShell>{children}</CupertinoShell>
       </body>
     </html>
   );

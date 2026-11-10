@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { AppHeader } from '../../components/AppHeader';
 import { MobileTabBar } from '../../components/MobileTabBar';
 import {
   DropZonePrimitive,
@@ -24,9 +23,7 @@ export default function MediaInfoPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <AppHeader />
-
+    <div className="flex flex-col">
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-8 py-8 space-y-8">
         <div className="flex items-center justify-between">
           <Link

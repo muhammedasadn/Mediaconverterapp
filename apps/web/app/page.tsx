@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AppHeader } from '../components/AppHeader';
-import { MobileTabBar } from '../components/MobileTabBar';
-import { CommandPalette } from '../components/CommandPalette';
+import { useRouter } from 'next/navigation';
 import {
   DropZonePrimitive,
   GlassCard,
@@ -20,6 +18,10 @@ import {
   AdvancedSettingsState,
   fadeUpVariant,
   staggerContainerVariant,
+  TrustStrip,
+  HowItWorksSection,
+  SupportedFormatsGrid,
+  FaqSection,
 } from '@universal/ui';
 import {
   FormatDefinition,
@@ -49,6 +51,7 @@ import {
 } from 'lucide-react';
 
 export default function HomePage() {
+  const router = useRouter();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   // Workflow State: 'idle' | 'configuring' | 'converting' | 'completed' | 'error'
@@ -184,48 +187,51 @@ export default function HomePage() {
       desc: 'Transcode to MP4, WebM, HEVC, and ProRes with custom resolution.',
       icon: Film,
       color: 'from-blue-500/20 to-cyan-500/10 text-cyan-400',
+      action: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
     },
     {
       title: 'Audio Extractor',
       desc: 'Extract MP3, WAV, AAC, and FLAC soundtracks at up to 320kbps.',
       icon: Music,
       color: 'from-purple-500/20 to-indigo-500/10 text-purple-400',
+      action: () => {
+        setTargetFormat(getFormatById('mp3')!);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
     },
     {
       title: 'Smart Compressor',
       desc: 'Reduce file sizes by up to 80% while retaining crystal clarity.',
       icon: Minimize2,
       color: 'from-emerald-500/20 to-teal-500/10 text-emerald-400',
+      action: () => router.push('/compress'),
     },
     {
       title: 'Trim & Merge',
       desc: 'Sub-frame precision cutting, video splicing, and audio alignment.',
       icon: Scissors,
       color: 'from-amber-500/20 to-orange-500/10 text-amber-400',
+      action: () => router.push('/edit'),
     },
     {
       title: 'Audio to Video',
       desc: 'Generate animated waveforms and visuals for podcasts and music.',
       icon: Share2,
       color: 'from-pink-500/20 to-rose-500/10 text-pink-400',
+      action: () => router.push('/audio-to-video'),
     },
     {
-      title: 'GIF Maker',
-      desc: 'Convert high-framerate video clips into smooth looping animated GIFs.',
+      title: 'GIF & Batch Queue',
+      desc: 'Bulk conversion and multi-clip high framerate animated GIF export.',
       icon: Layers,
       color: 'from-cyan-500/20 to-blue-500/10 text-cyan-300',
+      action: () => router.push('/batch'),
     },
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <AppHeader onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-      />
-
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-8 py-8 sm:py-16 space-y-12">
+    <div className="flex flex-col">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-8 py-8 sm:py-12 space-y-12">
         <AnimatePresence mode="wait">
           {/* STAGE 1: IDLE HERO */}
           {stage === 'idle' && (
@@ -384,45 +390,18 @@ export default function HomePage() {
           )}
         </AnimatePresence>
 
-        {/* Trust Badges Strip (shown when idle) */}
+        {/* When Idle: Full Creative Suite, Workflow Blueprint, Format Matrix, and FAQ */}
         {stage === 'idle' && (
           <>
-            <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6">
-              <GlassCard intensity="subtle" className="p-5 flex items-center gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                  <Shield className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-white">100% Private</h3>
-                  <p className="text-xs text-neutral-400">Files processed on-device. Zero data logging.</p>
-                </div>
-              </GlassCard>
-
-              <GlassCard intensity="subtle" className="p-5 flex items-center gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400">
-                  <Zap className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-white">Cloud Turbo Failover</h3>
-                  <p className="text-xs text-neutral-400">Instant multi-core cluster fallback for heavy 4K files.</p>
-                </div>
-              </GlassCard>
-
-              <GlassCard intensity="subtle" className="p-5 flex items-center gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
-                  <WifiOff className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-white">Offline Ready</h3>
-                  <p className="text-xs text-neutral-400">Install as PWA and convert without internet.</p>
-                </div>
-              </GlassCard>
-            </section>
+            <TrustStrip />
 
             {/* Tool Cards Grid */}
             <section className="space-y-6 pt-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold tracking-tight text-white">Creative Tool Suite</h2>
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight text-white">Creative Tool Suite</h2>
+                  <p className="text-xs text-neutral-400 mt-1">Specialized sub-studios for compression, trimming, audio video generation</p>
+                </div>
                 <span className="text-xs font-mono text-neutral-400">6 Modular Engines</span>
               </div>
 
@@ -434,6 +413,7 @@ export default function HomePage() {
                       key={tool.title}
                       intensity="medium"
                       whileHover={{ y: -4 }}
+                      onClick={tool.action}
                       className="p-6 cursor-pointer group"
                     >
                       <div
@@ -450,11 +430,23 @@ export default function HomePage() {
                 })}
               </div>
             </section>
+
+            {/* Interactive 3-Step Workflow */}
+            <HowItWorksSection />
+
+            {/* Interactive Format Matrix */}
+            <SupportedFormatsGrid
+              onSelectFormat={(fmtId) => {
+                const target = getFormatById(fmtId);
+                if (target) setTargetFormat(target);
+              }}
+            />
+
+            {/* Frequently Asked Questions */}
+            <FaqSection />
           </>
         )}
       </main>
-
-      <MobileTabBar />
     </div>
   );
 }
