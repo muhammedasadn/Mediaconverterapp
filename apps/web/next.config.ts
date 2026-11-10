@@ -2,6 +2,9 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  poweredByHeader: false,
+  compress: true,
+  output: 'standalone',
   transpilePackages: [
     '@universal/ui',
     '@universal/conversion-core',
@@ -10,6 +13,9 @@ const nextConfig: NextConfig = {
     '@universal/config-tailwind',
     '@universal/i18n',
   ],
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'framer-motion', '@universal/ui'],
+  },
   async headers() {
     return [
       {
@@ -22,6 +28,18 @@ const nextConfig: NextConfig = {
           {
             key: 'Cross-Origin-Embedder-Policy',
             value: 'require-corp',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
           },
         ],
       },
