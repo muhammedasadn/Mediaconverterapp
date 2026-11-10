@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   transpilePackages: [
     '@universal/ui',
+    '@universal/conversion-core',
     '@universal/format-registry',
     '@universal/job-contracts',
     '@universal/config-tailwind',

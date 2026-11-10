@@ -9,3 +9,11 @@ export * from './components/DynamicPill';
 export * from './components/MetricBadge';
 export * from './components/BottomSheet';
 export * from './components/DropZonePrimitive';
+
+export * from './components/FilePreviewCard';
+export * from './components/FormatSelector';
+export * from './components/QualityPresetSelector';
+export * from './components/AdvancedSettingsAccordion';
+export * from './components/EngineSelector';
+export * from './components/ConversionProgressCard';
+export * from './components/ConversionResultCard';

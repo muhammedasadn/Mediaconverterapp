@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@universal/config-tailwind": "workspace:*",
+    "@universal/conversion-core": "workspace:*",
     "@universal/format-registry": "workspace:*",
     "@universal/job-contracts": "workspace:*",
     "@universal/ui": "workspace:*",
