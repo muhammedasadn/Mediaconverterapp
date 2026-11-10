@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { MobileTabBar } from '../../components/MobileTabBar';
 import { HistoryManager, HistoryItem } from '@universal/ui';
 import { ArrowLeft } from 'lucide-react';
 
@@ -69,7 +68,6 @@ export default function HistoryPage() {
         />
       </main>
 
-      <MobileTabBar />
     </div>
   );
 }

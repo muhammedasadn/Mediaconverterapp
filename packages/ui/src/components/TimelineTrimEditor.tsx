@@ -10,7 +10,7 @@ import { useHapticFeedback } from '../motion/hooks';
 export interface TimelineTrimEditorProps {
   mediaSrc: string;
   durationSeconds: number;
-  onTrimChange: (startSeconds: number, endSeconds: number) => void;
+  onTrimChange: (startSeconds: number, endSeconds: number, mode?: 'lossless' | 'precise') => void;
   className?: string;
 }
 
@@ -28,6 +28,7 @@ export function TimelineTrimEditor({
   const [currentTime, setCurrentTime] = useState(0);
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(durationSeconds || 60);
+  const [mode, setMode] = useState<'lossless' | 'precise'>('lossless');
 
   // Sync video time
   const handleTimeUpdate = () => {
@@ -194,6 +195,49 @@ export function TimelineTrimEditor({
           className="absolute top-0 bottom-0 w-[2px] bg-white pointer-events-none shadow-[0_0_8px_#fff]"
           style={{ left: `${playheadPercent}%` }}
         />
+      </div>
+
+      {/* Trim Mode Toggle */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-zinc-400 font-medium">Cut Engine:</span>
+          <div className="flex rounded-lg bg-black/40 p-0.5 border border-white/5">
+            <button
+              type="button"
+              onClick={() => {
+                setMode('lossless');
+                onTrimChange(startTime, endTime, 'lossless');
+              }}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
+                mode === 'lossless'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              Lossless Fast
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode('precise');
+                onTrimChange(startTime, endTime, 'precise');
+              }}
+              className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
+                mode === 'precise'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              Frame-Accurate
+            </button>
+          </div>
+        </div>
+        <span className="text-[11px] text-zinc-500">
+          {mode === 'lossless'
+            ? '⚡ Instant cut (nearest keyframe, zero re-encode).'
+            : '🎯 Exact frame cut (re-encodes boundary frames).'
+          }
+        </span>
       </div>
 
       {/* Controls & Keyboard Hints */}

@@ -15,6 +15,8 @@ import {
   Settings,
   X,
   FileCode,
+  Link2,
+  Youtube,
 } from 'lucide-react';
 import { springSnappy } from '../motion/springs';
 
@@ -120,6 +122,28 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         icon: <Clock className="w-4 h-4 text-indigo-400" />,
         action: () => {
           onNavigate('/history');
+          onClose();
+        },
+      },
+      {
+        id: 'import',
+        title: 'Open Link Import',
+        category: 'tools',
+        subtitle: 'Direct public media & Creative Commons archives',
+        icon: <Link2 className="w-4 h-4 text-emerald-400" />,
+        action: () => {
+          onNavigate('/import');
+          onClose();
+        },
+      },
+      {
+        id: 'youtube',
+        title: 'YouTube Creator Helper',
+        category: 'tools',
+        subtitle: 'Official YouTube Studio export & CC audio guide',
+        icon: <Youtube className="w-4 h-4 text-red-400" />,
+        action: () => {
+          onNavigate('/youtube');
           onClose();
         },
       },

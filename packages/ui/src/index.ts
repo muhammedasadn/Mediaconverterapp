@@ -46,3 +46,6 @@ export * from './components/HowItWorksSection';
 export * from './components/SupportedFormatsGrid';
 export * from './components/FaqSection';
 export * from './components/CupertinoFooter';
+
+export * from './components/LinkImportCard';
+export * from './components/YouTubeHelperStudio';

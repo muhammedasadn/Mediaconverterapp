@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { MobileTabBar } from '../../components/MobileTabBar';
 import {
   DropZonePrimitive,
   TargetSizeCompressor,
@@ -12,7 +11,7 @@ import {
   ConversionResultCard,
 } from '@universal/ui';
 import { ArrowLeft, ArrowRight, Minimize2, Sparkles } from 'lucide-react';
-import { WasmBrowserEngine } from '@universal/conversion-core';
+import { WasmBrowserEngine, calculateTargetBitrate, shouldSkipCompression } from '@universal/conversion-core';
 import { ConversionRequest } from '@universal/job-contracts';
 
 export default function CompressPage() {
@@ -33,9 +32,24 @@ export default function CompressPage() {
   const handleStartCompress = async () => {
     if (!file) return;
 
+    // No-growth guard
+    const skipCheck = shouldSkipCompression(file.size, targetSize);
+    if (skipCheck.skip) {
+      setResultUrl(URL.createObjectURL(file));
+      return;
+    }
+
     setIsCompressing(true);
     setProgress(15);
-    setStage('Calculating optimal two-pass CRF encoding...');
+    setStage('Calculating optimal bitrate & resolution...');
+
+    const calc = calculateTargetBitrate({
+      targetBytes: targetSize,
+      durationSeconds: 60,
+      audioBitrateKbps: 96,
+      sourceWidth: 1920,
+      sourceHeight: 1080,
+    });
 
     const engine = new WasmBrowserEngine();
     const req: ConversionRequest = {
@@ -46,6 +60,11 @@ export default function CompressPage() {
       targetFormat: 'mp4',
       preset: 'small',
       enginePreference: 'device',
+      video: {
+        codec: 'libx264',
+        width: calc.recommendedWidth,
+        height: calc.recommendedHeight,
+      },
       createdAt: new Date().toISOString(),
     };
 
@@ -161,7 +180,6 @@ export default function CompressPage() {
         )}
       </main>
 
-      <MobileTabBar />
     </div>
   );
 }

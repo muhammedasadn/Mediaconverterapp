@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { MobileTabBar } from '../../components/MobileTabBar';
 import {
   DropZonePrimitive,
   MediaInfoInspector,
@@ -69,7 +68,6 @@ export default function MediaInfoPage() {
         )}
       </main>
 
-      <MobileTabBar />
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { MobileTabBar } from '../../components/MobileTabBar';
 import {
   DropZonePrimitive,
   TimelineTrimEditor,
@@ -18,6 +17,7 @@ export default function EditTrimPage() {
   const [file, setFile] = useState<File | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [trimRange, setTrimRange] = useState<{ start: number; end: number }>({ start: 0, end: 60 });
+  const [trimMode, setTrimMode] = useState<'lossless' | 'precise'>('lossless');
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
@@ -93,7 +93,10 @@ export default function EditTrimPage() {
                 <TimelineTrimEditor
                   mediaSrc={fileUrl || ''}
                   durationSeconds={60}
-                  onTrimChange={(start, end) => setTrimRange({ start, end })}
+                  onTrimChange={(start, end, mode) => {
+                    setTrimRange({ start, end });
+                    if (mode) setTrimMode(mode);
+                  }}
                 />
 
                 <div className="flex justify-between items-center pt-2">
@@ -113,7 +116,7 @@ export default function EditTrimPage() {
                     onClick={handleStartTrim}
                     rightIcon={<ArrowRight className="h-4 w-4" />}
                   >
-                    Export Trimmed Clip ({Math.round(trimRange.end - trimRange.start)}s)
+                    Export {trimMode === 'lossless' ? '⚡ Lossless' : '🎯 Precise'} ({Math.round(trimRange.end - trimRange.start)}s)
                   </CupertinoButton>
                 </div>
               </>
@@ -146,7 +149,6 @@ export default function EditTrimPage() {
         )}
       </main>
 
-      <MobileTabBar />
     </div>
   );
 }

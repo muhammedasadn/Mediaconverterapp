@@ -16,6 +16,8 @@ import {
   Sun,
   Globe,
   Github,
+  Link2,
+  Youtube,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -56,6 +58,8 @@ export const CupertinoNavbar: React.FC<CupertinoNavbarProps> = ({
     { href: '/', label: 'Convert', icon: Video },
     { href: '/compress', label: 'Compress', icon: Sparkles },
     { href: '/edit', label: 'Trim', icon: Scissors },
+    { href: '/import', label: 'Import', icon: Link2 },
+    { href: '/youtube', label: 'YouTube', icon: Youtube },
     { href: '/batch', label: 'Batch', icon: Layers },
     { href: '/audio-to-video', label: 'Studio', icon: Music },
   ];
