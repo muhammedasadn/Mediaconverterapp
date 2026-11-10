@@ -40,13 +40,11 @@ export default function YouTubeMp4ToMp3Page() {
         {/* Dropzone */}
         {!file ? (
           <DropZonePrimitive
-            onFilesSelected={(files) => {
-              if (files[0]) setFile(files[0]);
-            }}
-            accept={{ 'video/mp4': ['.mp4'], 'video/*': ['.mov', '.mkv', '.webm'] }}
+            onFileSelect={(selectedFile) => setFile(selectedFile)}
+            accept="video/mp4,video/*"
           />
         ) : (
-          <GlassCard intensity="strong" className="p-6 rounded-3xl border-purple-500/30 space-y-4">
+          <GlassCard intensity="deep" className="p-6 rounded-3xl border-purple-500/30 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">

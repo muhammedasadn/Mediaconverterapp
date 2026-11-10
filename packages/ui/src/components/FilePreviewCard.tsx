@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Film, Music, X, Play, Pause, FileSpreadsheet } from 'lucide-react';
-import { MediaProbeResult } from '@universal/format-registry';
+import type { MediaProbeResult } from '@universal/format-registry';
 import { MetricBadge } from './MetricBadge';
 import { springTokens } from '../motion/tokens';
 import { useHapticFeedback } from '../motion/hooks';

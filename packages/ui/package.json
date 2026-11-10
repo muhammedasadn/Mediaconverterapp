@@ -9,6 +9,10 @@
     "lint": "eslint src/"
   },
   "dependencies": {
+    "@universal/job-contracts": "workspace:*",
+    "@universal/format-registry": "workspace:*",
+    "@universal/conversion-core": "workspace:*",
+    "@universal/i18n": "workspace:*",
     "framer-motion": "^12.4.7",
     "lucide-react": "^0.475.0",
     "clsx": "^2.1.1",
@@ -18,6 +22,7 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@universal/tsconfig": "workspace:*",
+    "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "typescript": "^5.7.2"

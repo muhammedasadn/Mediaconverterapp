@@ -50,7 +50,7 @@ export default function ImportPage() {
 
         {/* Success Action Modal */}
         {importedFile && (
-          <GlassCard intensity="strong" className="p-6 rounded-3xl border-emerald-500/30 space-y-4">
+          <GlassCard intensity="deep" className="p-6 rounded-3xl border-emerald-500/30 space-y-4">
             <div className="flex items-center gap-3 text-emerald-400 font-semibold text-sm">
               <CheckCircle2 className="w-5 h-5" />
               <span>Media Link Validated & Ready</span>

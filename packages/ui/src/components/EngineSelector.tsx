@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { EngineMode } from '@universal/job-contracts';
+import type { EngineMode } from '@universal/job-contracts';
 import { ShieldCheck, Cloud, Cpu, Info } from 'lucide-react';
 import { springTokens } from '../motion/tokens';
 import { useHapticFeedback } from '../motion/hooks';

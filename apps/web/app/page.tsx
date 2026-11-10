@@ -146,10 +146,17 @@ export default function HomePage() {
     };
 
     try {
-      const result = await engine.convert(file, request, (progress) => {
-        setProgressPercent(progress.progressPercent);
-        setConversionStage(progress.stage);
-      });
+      let lastProgressTick = 0;
+      const throttledProgress = (progress: { progressPercent: number; stage: string }) => {
+        const now = Date.now();
+        if (progress.progressPercent === 100 || progress.progressPercent <= 10 || now - lastProgressTick >= 80) {
+          lastProgressTick = now;
+          setProgressPercent(progress.progressPercent);
+          setConversionStage(progress.stage);
+        }
+      };
+
+      const result = await engine.convert(file, request, throttledProgress);
 
       const url = URL.createObjectURL(result.outputBlob);
       setResultData({

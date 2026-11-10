@@ -76,7 +76,7 @@ export function detectMagicBytes(buffer: Uint8Array | ArrayBuffer): DetectedSign
   }
 
   // 7. MP3 raw frame sync: FF FB, FF F3, FF F2
-  if (bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0 && (bytes[1] & 0x06) !== 0x08) {
+  if (bytes[0] === 0xff && bytes[1] !== undefined && (bytes[1] & 0xe0) === 0xe0 && (bytes[1] & 0x06) !== 0x08) {
     return { mime: 'audio/mpeg', extension: 'mp3', category: 'audio' };
   }
 

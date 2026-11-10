@@ -96,4 +96,49 @@ describe('SafeFFmpegCommandBuilder Hardening & Command Injection Defense', () =>
     assert.ok(!filterArg.includes('`'));
     assert.ok(!filterArg.includes('$'));
   });
+
+  it('automatically adds -threads 0 and -movflags +faststart for MP4 streaming performance', () => {
+    const builder = new SafeFFmpegCommandBuilder();
+    const req: ConversionRequest = {
+      sourceFileName: 'camera.mov',
+      targetFormat: 'mp4',
+      video: {
+        codec: 'libx264',
+        crf: 23,
+      },
+    };
+
+    const args = builder.input('camera.mov').applyRequestSettings(req).build('camera.mp4');
+
+    assert.ok(args.includes('-threads'));
+    assert.equal(args[args.indexOf('-threads') + 1], '0');
+
+    assert.ok(args.includes('-preset'));
+    assert.equal(args[args.indexOf('-preset') + 1], 'fast');
+
+    assert.ok(args.includes('-movflags'));
+    assert.equal(args[args.indexOf('-movflags') + 1], '+faststart');
+  });
+
+  it('applies sub-clip trimming directly from request settings', () => {
+    const builder = new SafeFFmpegCommandBuilder();
+    const req: ConversionRequest = {
+      sourceFileName: 'clip.mp4',
+      targetFormat: 'mp4',
+      trim: {
+        startTimeSeconds: 15,
+        endTimeSeconds: 45,
+        mode: 'lossless',
+      },
+    };
+
+    const args = builder.input('clip.mp4').applyRequestSettings(req).build('trimmed.mp4');
+
+    assert.ok(args.includes('-ss'));
+    assert.equal(args[args.indexOf('-ss') + 1], '15.000');
+    assert.ok(args.includes('-t'));
+    assert.equal(args[args.indexOf('-t') + 1], '30.000');
+    assert.ok(args.includes('-c'));
+    assert.equal(args[args.indexOf('-c') + 1], 'copy');
+  });
 });

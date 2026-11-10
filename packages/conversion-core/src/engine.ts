@@ -1,5 +1,5 @@
-import { ConversionRequest, JobStatusResponse } from '@universal/job-contracts';
-import { MediaProbeResult } from '@universal/format-registry';
+import type { ConversionRequest, JobStatusResponse } from '@universal/job-contracts';
+import type { MediaProbeResult } from '@universal/format-registry';
 
 export interface ConversionProgress {
   progressPercent: number; // 0 to 100

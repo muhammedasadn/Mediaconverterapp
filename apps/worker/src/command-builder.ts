@@ -14,6 +14,20 @@ export class SafeFFmpegCommandBuilder {
     return this;
   }
 
+  withThreads(threads: number = 0): this {
+    if (!this.preInputArgs.includes('-threads')) {
+      this.preInputArgs.push('-threads', String(Math.max(0, threads)));
+    }
+    return this;
+  }
+
+  withFastStart(): this {
+    if (!this.postInputArgs.includes('-movflags')) {
+      this.postInputArgs.push('-movflags', '+faststart');
+    }
+    return this;
+  }
+
   /**
    * Fast seek trim: -ss placed BEFORE -i enables instant keyframe seek without decoding latency.
    */
@@ -29,7 +43,7 @@ export class SafeFFmpegCommandBuilder {
   }
 
   /**
-   * Frame-accurate precise trim: re-encodes boundary frames.
+   * Frame-accurate precise trim: re-encodes boundary frames with fast preset.
    */
   preciseTrim(startTimeSeconds: number, durationSeconds: number, crf: number = 20): this {
     if (startTimeSeconds >= 0) {
@@ -64,12 +78,32 @@ export class SafeFFmpegCommandBuilder {
   }
 
   applyRequestSettings(req: ConversionRequest): this {
+    // Multi-threaded CPU utilization
+    if (!this.preInputArgs.includes('-threads')) {
+      this.preInputArgs.push('-threads', '0');
+    }
+
+    // Sub-clip trimming if specified in request
+    if (req.trim) {
+      const dur = req.trim.endTimeSeconds - req.trim.startTimeSeconds;
+      if (req.trim.mode === 'lossless') {
+        this.losslessTrim(req.trim.startTimeSeconds, dur);
+      } else {
+        this.preciseTrim(req.trim.startTimeSeconds, dur, req.trim.crf ?? 20);
+      }
+    }
+
     // Video settings
     if (req.video) {
       if (req.video.codec) {
         const safeCodec = /^[a-zA-Z0-9_-]+$/.test(req.video.codec) ? req.video.codec : 'libx264';
         this.postInputArgs.push('-c:v', safeCodec);
       }
+
+      // High-efficiency fast encode preset
+      const speedPreset = req.video.speedPreset || 'fast';
+      this.postInputArgs.push('-preset', speedPreset);
+
       if (req.video.crf !== undefined) {
         this.postInputArgs.push('-crf', String(Math.max(0, Math.min(51, req.video.crf))));
       }
@@ -98,6 +132,11 @@ export class SafeFFmpegCommandBuilder {
       if (req.audio.channels) {
         this.postInputArgs.push('-ac', String(Math.max(1, Math.min(8, req.audio.channels))));
       }
+    }
+
+    // Streaming optimization for MP4 and M4A
+    if (req.targetFormat === 'mp4' || req.targetFormat === 'm4a') {
+      this.withFastStart();
     }
 
     return this;

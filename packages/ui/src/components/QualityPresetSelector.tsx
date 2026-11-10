@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { QualityPreset, QUALITY_PRESETS } from '@universal/format-registry';
+import type { QualityPreset } from '@universal/format-registry';
+import { QUALITY_PRESETS } from '@universal/format-registry';
 import { springTokens } from '../motion/tokens';
 import { useHapticFeedback } from '../motion/hooks';
 import { Sparkles, Zap, HardDrive, ShieldCheck } from 'lucide-react';
@@ -22,7 +23,7 @@ export function QualityPresetSelector({
 }: QualityPresetSelectorProps) {
   const { triggerHaptic } = useHapticFeedback();
 
-  const presets = Object.values(QUALITY_PRESETS);
+  const presets = Object.values(QUALITY_PRESETS) as Array<(typeof QUALITY_PRESETS)[keyof typeof QUALITY_PRESETS]>;
 
   // Dynamic estimate ratio
   const getEstimatedSize = (preset: QualityPreset) => {

@@ -7,6 +7,7 @@ import { springTokens } from '../motion/tokens';
 import { useHapticFeedback } from '../motion/hooks';
 
 export interface CupertinoButtonProps extends HTMLMotionProps<'button'> {
+  children?: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'glass' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;

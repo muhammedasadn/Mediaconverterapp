@@ -24,6 +24,14 @@ export const VideoEncodingSettingsSchema = z.object({
 });
 export type VideoEncodingSettings = z.infer<typeof VideoEncodingSettingsSchema>;
 
+export const TrimSettingsSchema = z.object({
+  startTimeSeconds: z.number().min(0),
+  endTimeSeconds: z.number().positive(),
+  mode: z.enum(['lossless', 'precise']).default('lossless'),
+  crf: z.number().int().min(0).max(51).optional(),
+});
+export type TrimSettings = z.infer<typeof TrimSettingsSchema>;
+
 export const ConversionRequestSchema = z.object({
   id: z.string().uuid(),
   inputFilename: z.string().min(1).max(255),
@@ -34,6 +42,7 @@ export const ConversionRequestSchema = z.object({
   enginePreference: EngineModeSchema.default('auto'),
   video: VideoEncodingSettingsSchema.optional(),
   audio: AudioEncodingSettingsSchema.optional(),
+  trim: TrimSettingsSchema.optional(),
   createdAt: z.string().datetime().default(() => new Date().toISOString()),
 });
 export type ConversionRequest = z.infer<typeof ConversionRequestSchema>;

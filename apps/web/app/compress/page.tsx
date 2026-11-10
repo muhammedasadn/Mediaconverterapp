@@ -69,9 +69,14 @@ export default function CompressPage() {
     };
 
     try {
+      let lastProgressTick = 0;
       const result = await engine.convert(file, req, (p) => {
-        setProgress(p.progressPercent);
-        setStage(p.stage);
+        const now = Date.now();
+        if (p.progressPercent === 100 || p.progressPercent <= 15 || now - lastProgressTick >= 80) {
+          lastProgressTick = now;
+          setProgress(p.progressPercent);
+          setStage(p.stage);
+        }
       });
 
       const url = URL.createObjectURL(result.outputBlob);

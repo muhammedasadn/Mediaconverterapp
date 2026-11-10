@@ -36,7 +36,7 @@ export function startWorker() {
         outputPath,
         job.data,
         60, // estimated duration default
-        async (progress) => {
+        async (progress: { progressPercent: number }) => {
           await job.updateProgress(progress.progressPercent);
         }
       );

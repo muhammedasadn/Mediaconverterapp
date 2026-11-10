@@ -1,7 +1,12 @@
 {
   "extends": "@universal/tsconfig/node.json",
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "paths": {
+      "@universal/job-contracts": ["../../packages/job-contracts/src/index.ts"],
+      "@universal/format-registry": ["../../packages/format-registry/src/index.ts"],
+      "@universal/conversion-core": ["../../packages/conversion-core/src/index.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

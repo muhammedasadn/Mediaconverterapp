@@ -1,4 +1,4 @@
-import { JobStatusResponse } from './schemas';
+import type { JobStatusResponse } from './schemas';
 
 export interface SSEJobProgressEvent {
   type: 'job:progress';

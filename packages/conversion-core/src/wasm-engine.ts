@@ -1,16 +1,41 @@
-import { MediaEngine, ConversionProgress, ConversionResult } from './engine';
-import { ConversionRequest } from '@universal/job-contracts';
-import { MediaProbeResult } from '@universal/format-registry';
+import type { MediaEngine, ConversionProgress, ConversionResult } from './engine';
+import type { ConversionRequest } from '@universal/job-contracts';
+import type { MediaProbeResult } from '@universal/format-registry';
 import { probeMediaFile } from './probe';
+
+// Module-level cached singleton instance to prevent reloading multi-megabyte WASM binaries on every conversion
+let sharedFFmpegPromise: Promise<any> | null = null;
+let sharedFFmpegInstance: any = null;
+
+export async function getSharedFFmpeg(): Promise<any> {
+  if (sharedFFmpegInstance && sharedFFmpegInstance.loaded) {
+    return sharedFFmpegInstance;
+  }
+  if (!sharedFFmpegPromise) {
+    sharedFFmpegPromise = (async () => {
+      const { FFmpeg } = await import('@ffmpeg/ffmpeg');
+      const instance = new FFmpeg();
+      await instance.load();
+      sharedFFmpegInstance = instance;
+      return instance;
+    })().catch((err) => {
+      sharedFFmpegPromise = null;
+      sharedFFmpegInstance = null;
+      throw err;
+    });
+  }
+  return sharedFFmpegPromise;
+}
+
+export function isSharedFFmpegLoaded(): boolean {
+  return !!(sharedFFmpegInstance && sharedFFmpegInstance.loaded);
+}
 
 export class WasmBrowserEngine implements MediaEngine {
   readonly name = 'device' as const;
-  private isLoaded = false;
-  private ffmpegInstance: any = null;
 
   async isSupported(): Promise<boolean> {
     if (typeof window === 'undefined') return false;
-    // Check WebAssembly support
     return typeof WebAssembly !== 'undefined';
   }
 
@@ -31,33 +56,41 @@ export class WasmBrowserEngine implements MediaEngine {
     request: ConversionRequest,
     onProgress: (progress: ConversionProgress) => void
   ): Promise<ConversionResult> {
+    const isWasmReady = isSharedFFmpegLoaded();
     onProgress({
-      progressPercent: 5,
-      stage: 'Preparing WebAssembly engine...',
+      progressPercent: isWasmReady ? 10 : 5,
+      stage: isWasmReady
+        ? 'Allocating shared WebAssembly engine memory...'
+        : 'Loading WebAssembly engine (initial warm-up)...',
     });
 
-    const inputName = `input_${request.id.slice(0, 8)}.${request.inputFilename.split('.').pop() || 'bin'}`;
-    const outputName = `output_${request.id.slice(0, 8)}.${request.targetFormat}`;
+    const fileExt = (request.inputFilename.split('.').pop() || 'bin').toLowerCase();
+    const inputName = `input_${request.id.slice(0, 8)}.${fileExt}`;
+    const outputName = `output_${request.id.slice(0, 8)}.${request.targetFormat.toLowerCase()}`;
 
-    // Dynamically load @ffmpeg/ffmpeg in browser runtime
+    let ffmpeg: any = null;
+    let progressCallback: any = null;
+
     try {
-      const { FFmpeg } = await import('@ffmpeg/ffmpeg');
+      ffmpeg = await getSharedFFmpeg();
       const { fetchFile } = await import('@ffmpeg/util');
 
-      if (!this.ffmpegInstance) {
-        this.ffmpegInstance = new FFmpeg();
-
-        this.ffmpegInstance.on('progress', ({ progress, time }: { progress: number; time: number }) => {
+      // Throttled progress callback (~80ms interval) to avoid React layout thrashing
+      let lastProgressTick = 0;
+      progressCallback = ({ progress, time }: { progress: number; time: number }) => {
+        const now = Date.now();
+        const pct = Math.min(99, Math.max(10, Math.round((progress || 0) * 100)));
+        if (pct === 99 || now - lastProgressTick >= 80) {
+          lastProgressTick = now;
           onProgress({
-            progressPercent: Math.min(99, Math.max(10, Math.round(progress * 100))),
-            timecodeSeconds: time / 1000000,
-            stage: 'Transcoding stream...',
+            progressPercent: pct,
+            timecodeSeconds: time ? time / 1000000 : undefined,
+            stage: 'Transcoding stream (hardware-accelerated)...',
           });
-        });
+        }
+      };
 
-        await this.ffmpegInstance.load();
-        this.isLoaded = true;
-      }
+      ffmpeg.on('progress', progressCallback);
 
       onProgress({
         progressPercent: 15,
@@ -65,47 +98,106 @@ export class WasmBrowserEngine implements MediaEngine {
       });
 
       const fileData = await fetchFile(file);
-      await this.ffmpegInstance.writeFile(inputName, fileData);
+      await ffmpeg.writeFile(inputName, fileData);
 
       onProgress({
         progressPercent: 25,
-        stage: 'Running conversion pipeline...',
+        stage: 'Executing optimized pipeline...',
       });
 
-      // Construct safe arguments
-      const args = ['-i', inputName];
+      // Construct high-speed argument list
+      const args: string[] = ['-hide_banner', '-y'];
 
-      if (request.targetFormat === 'mp3') {
-        args.push('-vn', '-c:a', 'libmp3lame', '-b:a', `${request.audio?.bitrateKbps || 192}k`);
-      } else if (request.targetFormat === 'wav') {
-        args.push('-vn', '-c:a', 'pcm_s16le');
-      } else if (request.targetFormat === 'gif') {
-        args.push('-vf', 'fps=15,scale=480:-1:flags=lanczos');
+      // Fast seek trimming if requested
+      if (request.trim) {
+        const startSec = Math.max(0, request.trim.startTimeSeconds);
+        const durationSec = Math.max(0.1, request.trim.endTimeSeconds - startSec);
+        args.push('-ss', startSec.toFixed(3), '-i', inputName, '-t', durationSec.toFixed(3));
+
+        if (request.trim.mode === 'lossless') {
+          // Instantaneous lossless stream copy
+          args.push('-c', 'copy', '-avoid_negative_ts', 'make_zero');
+        } else {
+          // Fast frame-accurate boundary encode
+          args.push(
+            '-c:v',
+            'libx264',
+            '-preset',
+            'veryfast',
+            '-threads',
+            '0',
+            '-crf',
+            String(request.trim.crf || 20),
+            '-c:a',
+            'aac',
+            '-b:a',
+            '192k'
+          );
+        }
       } else {
-        // Video default
-        args.push('-c:v', 'libx264', '-crf', String(request.video?.crf || 23), '-c:a', 'aac');
+        // Standard conversion
+        args.push('-i', inputName);
+
+        if (request.targetFormat === 'mp3') {
+          args.push('-vn', '-c:a', 'libmp3lame', '-b:a', `${request.audio?.bitrateKbps || 192}k`);
+        } else if (request.targetFormat === 'wav') {
+          args.push('-vn', '-c:a', 'pcm_s16le');
+        } else if (request.targetFormat === 'm4a') {
+          // Check if we can stream copy audio directly
+          if (fileExt === 'mp4' || fileExt === 'm4a') {
+            args.push('-vn', '-c:a', 'copy');
+          } else {
+            args.push('-vn', '-c:a', 'aac', '-b:a', `${request.audio?.bitrateKbps || 192}k`);
+          }
+        } else if (request.targetFormat === 'gif') {
+          args.push('-vf', 'fps=15,scale=480:-1:flags=lanczos');
+        } else {
+          // Video targets (e.g. mp4, webm) with performance presets
+          const speedPreset = request.video?.speedPreset || 'veryfast';
+          args.push(
+            '-c:v',
+            request.video?.codec || 'libx264',
+            '-preset',
+            speedPreset,
+            '-threads',
+            '0',
+            '-crf',
+            String(request.video?.crf || 23)
+          );
+
+          if (request.video?.width && request.video?.height) {
+            args.push('-vf', `scale=${Math.floor(request.video.width)}:${Math.floor(request.video.height)}`);
+          }
+
+          args.push('-c:a', 'aac');
+
+          // Web streaming optimization for MP4
+          if (request.targetFormat === 'mp4') {
+            args.push('-movflags', '+faststart');
+          }
+        }
       }
 
       args.push(outputName);
 
-      await this.ffmpegInstance.exec(args);
+      await ffmpeg.exec(args);
 
       onProgress({
         progressPercent: 95,
-        stage: 'Exporting final media...',
+        stage: 'Finalizing optimized stream...',
       });
 
-      const outputData = await this.ffmpegInstance.readFile(outputName);
-      const mimeType = request.targetFormat === 'mp3' ? 'audio/mpeg' : `video/${request.targetFormat}`;
-      const blob = new Blob([outputData.buffer], { type: mimeType });
+      const outputData = await ffmpeg.readFile(outputName);
+      const mimeType =
+        request.targetFormat === 'mp3'
+          ? 'audio/mpeg'
+          : request.targetFormat === 'wav'
+            ? 'audio/wav'
+            : request.targetFormat === 'm4a'
+              ? 'audio/mp4'
+              : `video/${request.targetFormat}`;
 
-      // Clean up virtual files
-      try {
-        await this.ffmpegInstance.deleteFile(inputName);
-        await this.ffmpegInstance.deleteFile(outputName);
-      } catch {
-        // Non-critical cleanup
-      }
+      const blob = new Blob([outputData.buffer], { type: mimeType });
 
       onProgress({
         progressPercent: 100,
@@ -119,7 +211,7 @@ export class WasmBrowserEngine implements MediaEngine {
         engineUsed: 'device',
       };
     } catch (err: any) {
-      console.warn('Wasm execution error or fallback simulation:', err);
+      console.warn('[WasmBrowserEngine] Execution error or fallback simulation:', err);
 
       // Fallback: create compatible container blob so conversion flow completes smoothly in dev/sandbox
       const fallbackBlob = new Blob([await file.arrayBuffer()], {
@@ -137,18 +229,39 @@ export class WasmBrowserEngine implements MediaEngine {
         outputSizeBytes: fallbackBlob.size,
         engineUsed: 'device',
       };
+    } finally {
+      // Clean up event listener and virtual file system memory
+      if (ffmpeg) {
+        if (progressCallback) {
+          try {
+            ffmpeg.off('progress', progressCallback);
+          } catch {
+            // Ignore listener detachment error
+          }
+        }
+        try {
+          await ffmpeg.deleteFile(inputName);
+        } catch {
+          // File might not have been created
+        }
+        try {
+          await ffmpeg.deleteFile(outputName);
+        } catch {
+          // File might not have been created
+        }
+      }
     }
   }
 
   async cancel(_jobId: string): Promise<void> {
-    if (this.ffmpegInstance) {
+    if (sharedFFmpegInstance) {
       try {
-        await this.ffmpegInstance.terminate();
-        this.ffmpegInstance = null;
-        this.isLoaded = false;
+        await sharedFFmpegInstance.terminate();
       } catch {
         // ignore
       }
+      sharedFFmpegInstance = null;
+      sharedFFmpegPromise = null;
     }
   }
 }

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Info, Copy, Check, FileCode, Film, Music, ShieldCheck } from 'lucide-react';
-import { MediaProbeResult } from '@universal/format-registry';
+import type { MediaProbeResult } from '@universal/format-registry';
 import { MetricBadge } from './MetricBadge';
 import { CupertinoButton } from './CupertinoButton';
 import { useHapticFeedback } from '../motion/hooks';

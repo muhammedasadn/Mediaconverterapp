@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FormatDefinition, ALL_FORMATS } from '@universal/format-registry';
+import type { FormatDefinition } from '@universal/format-registry';
+import { ALL_FORMATS } from '@universal/format-registry';
 import { springTokens } from '../motion/tokens';
 import { useHapticFeedback } from '../motion/hooks';
 import { Film, Music, Image as ImageIcon, Sparkles } from 'lucide-react';
@@ -26,7 +27,7 @@ export function FormatSelector({
     { id: 'audio', label: 'Audio Tracks', icon: Music },
   ] as const;
 
-  const currentFormats = Object.values(ALL_FORMATS).filter(
+  const currentFormats: FormatDefinition[] = (Object.values(ALL_FORMATS) as FormatDefinition[]).filter(
     (f) => f.category === activeCategory
   );
 

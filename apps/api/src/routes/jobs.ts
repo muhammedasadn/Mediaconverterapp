@@ -111,7 +111,11 @@ export const jobRoutes: FastifyPluginAsync = async (fastify) => {
 
     const outputPath = path.join(UPLOAD_DIR, `output_${jobId}.${job.data.targetFormat}`);
     if (fs.existsSync(outputPath)) {
-      return reply.sendFile(`output_${jobId}.${job.data.targetFormat}`, UPLOAD_DIR);
+      const stream = fs.createReadStream(outputPath);
+      return reply
+        .header('Content-Disposition', `attachment; filename="output_${jobId}.${job.data.targetFormat}"`)
+        .type('application/octet-stream')
+        .send(stream);
     }
 
     return reply.status(404).send({ success: false, error: { message: 'Output file missing.' } });

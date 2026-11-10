@@ -40,14 +40,24 @@ export default function EditTrimPage() {
       inputSizeBytes: file.size,
       inputMimeType: file.type,
       targetFormat: 'mp4',
-      preset: 'lossless',
+      preset: trimMode === 'lossless' ? 'lossless' : 'balanced',
       enginePreference: 'device',
+      trim: {
+        startTimeSeconds: trimRange.start,
+        endTimeSeconds: trimRange.end,
+        mode: trimMode,
+      },
       createdAt: new Date().toISOString(),
     };
 
     try {
+      let lastProgressTick = 0;
       const result = await engine.convert(file, req, (p) => {
-        setProgress(p.progressPercent);
+        const now = Date.now();
+        if (p.progressPercent === 100 || p.progressPercent <= 20 || now - lastProgressTick >= 80) {
+          lastProgressTick = now;
+          setProgress(p.progressPercent);
+        }
       });
 
       const url = URL.createObjectURL(result.outputBlob);

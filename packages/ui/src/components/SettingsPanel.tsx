@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Globe, Moon, Sun, Shield, HardDrive, Trash2, Check, Cpu } from 'lucide-react';
-import { SUPPORTED_LANGUAGES, SupportedLanguage } from '@universal/i18n';
+import { SUPPORTED_LANGUAGES } from '@universal/i18n';
+import type { SupportedLanguage } from '@universal/i18n';
 import { CupertinoButton } from './CupertinoButton';
 import { springTokens } from '../motion/tokens';
 import { useHapticFeedback } from '../motion/hooks';
@@ -63,7 +64,7 @@ export function SettingsPanel() {
                 }}
                 className="rounded-xl bg-white/10 border border-white/15 px-3 py-1.5 text-xs text-white focus:outline-none"
               >
-                {SUPPORTED_LANGUAGES.map((l) => (
+                {SUPPORTED_LANGUAGES.map((l: (typeof SUPPORTED_LANGUAGES)[number]) => (
                   <option key={l.code} value={l.code} className="bg-neutral-900 text-white">
                     {l.nativeName} ({l.name})
                   </option>

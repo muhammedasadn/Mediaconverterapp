@@ -39,7 +39,7 @@ export async function buildServer() {
   });
 
   // Global Error Handler
-  server.setErrorHandler((error, request, reply) => {
+  server.setErrorHandler((error: any, request, reply) => {
     request.log.error(error);
     reply.status(error.statusCode || 500).send({
       success: false,

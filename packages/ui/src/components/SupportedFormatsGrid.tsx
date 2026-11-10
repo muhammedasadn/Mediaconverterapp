@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ALL_FORMATS, FormatDefinition } from '@universal/format-registry';
+import { ALL_FORMATS } from '@universal/format-registry';
+import type { FormatDefinition } from '@universal/format-registry';
 import { Video, Music, Sparkles, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 

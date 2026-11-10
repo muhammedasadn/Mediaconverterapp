@@ -1,4 +1,4 @@
-import { MediaProbeResult } from '@universal/format-registry';
+import type { MediaProbeResult } from '@universal/format-registry';
 
 /**
  * Fast client-side media probe extracting duration, dimensions, and type
