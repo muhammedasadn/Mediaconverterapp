@@ -78,6 +78,9 @@ importers:
       '@fastify/multipart':
         specifier: ^9.0.3
         version: 9.4.0
+      '@universal/conversion-core':
+        specifier: workspace:*
+        version: link:../../packages/conversion-core
       '@universal/format-registry':
         specifier: workspace:*
         version: link:../../packages/format-registry
@@ -258,6 +261,18 @@ importers:
 
   packages/ui:
     dependencies:
+      '@universal/conversion-core':
+        specifier: workspace:*
+        version: link:../conversion-core
+      '@universal/format-registry':
+        specifier: workspace:*
+        version: link:../format-registry
+      '@universal/i18n':
+        specifier: workspace:*
+        version: link:../i18n
+      '@universal/job-contracts':
+        specifier: workspace:*
+        version: link:../job-contracts
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -280,6 +295,9 @@ importers:
       '@universal/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      next:
+        specifier: ^15.1.0
+        version: 15.1.7(@playwright/test@1.50.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react:
         specifier: ^19.0.0
         version: 19.3.1
