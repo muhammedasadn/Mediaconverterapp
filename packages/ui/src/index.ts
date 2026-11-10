@@ -32,3 +32,8 @@ export * from './components/AudioWaveformVisualizer';
 export * from './components/AspectRatioSelector';
 export * from './components/AudioToVideoStudio';
 export * from './components/MediaInfoInspector';
+
+export * from './components/HistoryManager';
+export * from './components/PWAInstallPromptCard';
+export * from './components/SettingsPanel';
+export * from './components/AuthAccountModal';
