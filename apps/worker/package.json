@@ -1,0 +1,26 @@
+{
+  "name": "@universal/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/worker.js",
+  "scripts": {
+    "dev": "tsx watch src/worker.ts",
+    "build": "tsc",
+    "start": "node dist/worker.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@universal/format-registry": "workspace:*",
+    "@universal/job-contracts": "workspace:*",
+    "bullmq": "^5.41.3",
+    "ioredis": "^5.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@universal/tsconfig": "workspace:*",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

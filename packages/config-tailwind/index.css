@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --canvas-bg: #0b0d12;
+    --canvas-text: #f3f4f6;
+    --canvas-text-muted: #9ca3af;
+    --glass-bg: rgba(22, 25, 34, 0.72);
+    --glass-bg-hover: rgba(30, 34, 46, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-border-hover: rgba(255, 255, 255, 0.22);
+    --glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
+    --glass-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.65);
+    --accent-primary: #0a84ff;
+    --accent-cyan: #00f2fe;
+    --accent-gradient: linear-gradient(135deg, #0a84ff 0%, #00f2fe 100%);
+    --accent-glow: rgba(10, 132, 255, 0.25);
+    --status-success: #30d158;
+    --status-warning: #ff9f0a;
+    --status-error: #ff453a;
+  }
+
+  [data-theme="light"] {
+    --canvas-bg: #f8f9fa;
+    --canvas-text: #111827;
+    --canvas-text-muted: #6b7280;
+    --glass-bg: rgba(255, 255, 255, 0.82);
+    --glass-bg-hover: rgba(255, 255, 255, 0.95);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --glass-border-hover: rgba(0, 0, 0, 0.16);
+    --glass-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.8);
+    --glass-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.06);
+    --accent-primary: #0071e3;
+    --accent-cyan: #00b4d8;
+    --accent-gradient: linear-gradient(135deg, #0071e3 0%, #00b4d8 100%);
+    --accent-glow: rgba(0, 113, 227, 0.18);
+  }
+
+  body {
+    background-color: var(--canvas-bg);
+    color: var(--canvas-text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+}
+
+/* Cupertino Glass Utility Classes */
+.cupertino-glass {
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-specular), var(--glass-shadow);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+}
+
+.cupertino-pill {
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+}
+
+.cupertino-glow-accent {
+  box-shadow: 0 0 30px var(--accent-glow);
+}
+
+/* Subtle Micro-Noise Overlay */
+.bg-noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+}

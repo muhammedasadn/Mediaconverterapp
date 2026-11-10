@@ -1,0 +1,8 @@
+{
+  "name": "@universal/config-tailwind",
+  "version": "0.1.0",
+  "private": true,
+  "files": [
+    "index.css"
+  ]
+}
