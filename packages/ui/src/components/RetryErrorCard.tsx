@@ -32,7 +32,10 @@ export function RetryErrorCard({
         scale: 1,
         x: [-6, 6, -4, 4, -2, 2, 0], // Gentle shake feedback
       }}
-      transition={springTokens.snappy}
+      transition={{
+        default: springTokens.snappy,
+        x: { duration: 0.6, ease: 'easeInOut' },
+      }}
       className={`relative overflow-hidden rounded-[28px] border border-red-500/30 bg-neutral-900/90 p-6 sm:p-8 backdrop-blur-3xl text-center shadow-2xl ${className}`}
       style={{
         boxShadow: 'inset 0 1px 1px 0 rgba(255, 69, 58, 0.2), 0 24px 48px -12px rgba(0, 0, 0, 0.7)',

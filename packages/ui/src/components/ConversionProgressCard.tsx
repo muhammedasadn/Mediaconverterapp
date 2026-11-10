@@ -91,6 +91,7 @@ export function ConversionProgressCard({
               repeat: Infinity,
               duration: 1 + (i % 5) * 0.2,
               ease: 'easeInOut',
+              type: 'tween',
             }}
           />
         ))}
