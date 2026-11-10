@@ -53,4 +53,36 @@ describe('SSRF Defense & IP Validation Test Suite', () => {
     assert.equal(validRes.isValid, true);
     assert.equal(validRes.resolvedIp, '91.198.174.208');
   });
+
+  it('rejects punycode and lookalike IDN domains', async () => {
+    const res = await validateImportUrl('https://xn--pple-43d.com/sample.mp4');
+    assert.equal(res.isValid, false);
+    assert.match(res.reason || '', /punycode/i);
+  });
+
+  it('rejects streaming manifests and playlist URLs', async () => {
+    const hlsRes = await validateImportUrl('https://example.com/live/playlist.m3u8');
+    assert.equal(hlsRes.isValid, false);
+    assert.match(hlsRes.reason || '', /manifest/i);
+
+    const dashRes = await validateImportUrl('https://example.com/stream/manifest.mpd');
+    assert.equal(dashRes.isValid, false);
+    assert.match(dashRes.reason || '', /manifest/i);
+  });
+
+  it('correctly matches and attributes allowlisted open-source domains', async () => {
+    const wiki = await validateImportUrl('https://upload.wikimedia.org/audio/sample.mp3', {
+      dnsLookupFn: async () => ({ address: '91.198.174.208' }),
+    });
+    assert.equal(wiki.isValid, true);
+    assert.equal(wiki.isAllowlisted, true);
+    assert.equal(wiki.sourceName, 'Wikimedia Commons');
+
+    const archive = await validateImportUrl('https://archive.org/download/item/file.mp4', {
+      dnsLookupFn: async () => ({ address: '207.241.228.167' }),
+    });
+    assert.equal(archive.isValid, true);
+    assert.equal(archive.isAllowlisted, true);
+    assert.equal(archive.sourceName, 'Internet Archive');
+  });
 });

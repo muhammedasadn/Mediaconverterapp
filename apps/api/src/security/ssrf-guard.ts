@@ -2,6 +2,21 @@ import dns from 'node:dns/promises';
 import { isIP } from 'node:net';
 
 /**
+ * Verified Allowlist of Public Open-Access & Creative Commons Media Repositories
+ */
+export const ALLOWLISTED_DOMAINS: { domain: string; name: string }[] = [
+  { domain: 'wikimedia.org', name: 'Wikimedia Commons' },
+  { domain: 'wikipedia.org', name: 'Wikipedia Commons' },
+  { domain: 'archive.org', name: 'Internet Archive' },
+  { domain: 'freemusicarchive.org', name: 'Free Music Archive' },
+  { domain: 'pixabay.com', name: 'Pixabay' },
+  { domain: 'pexels.com', name: 'Pexels' },
+  { domain: 'freesound.org', name: 'Freesound' },
+  { domain: 'ccmixter.org', name: 'ccMixter' },
+  { domain: 'musopen.org', name: 'Musopen' },
+];
+
+/**
  * Checks whether an IPv4 or IPv6 address belongs to private, loopback, or cloud-metadata ranges.
  */
 export function isPrivateOrBlockedIp(ip: string): boolean {
@@ -48,15 +63,38 @@ export function isPrivateOrBlockedIp(ip: string): boolean {
   return false;
 }
 
+/**
+ * Detects whether a URL points to an HLS/DASH manifest or playlist rather than a standalone media file.
+ */
+export function isManifestOrPlaylistUrl(urlPath: string): boolean {
+  const clean = urlPath.toLowerCase().split('?')[0] || '';
+  return /\.(m3u8|m3u|mpd|ffconcat|pls|xspf|asx|f4m|ism|isml)$/i.test(clean);
+}
+
+/**
+ * Checks if a hostname matches the verified open-source allowlist.
+ */
+export function matchAllowlistDomain(hostname: string): { isAllowlisted: boolean; sourceName?: string } {
+  const lower = hostname.toLowerCase();
+  for (const entry of ALLOWLISTED_DOMAINS) {
+    if (lower === entry.domain || lower.endsWith(`.${entry.domain}`)) {
+      return { isAllowlisted: true, sourceName: entry.name };
+    }
+  }
+  return { isAllowlisted: false };
+}
+
 export interface UrlValidationResult {
   isValid: boolean;
   reason?: string;
   url?: URL;
   resolvedIp?: string;
+  sourceName?: string;
+  isAllowlisted?: boolean;
 }
 
 /**
- * Validates a remote media import URL against SSRF, credential leakage, and custom ports.
+ * Validates a remote media import URL against SSRF, credential leakage, manifest formats, and custom ports.
  */
 export async function validateImportUrl(
   rawUrl: string,
@@ -89,24 +127,35 @@ export async function validateImportUrl(
 
   const hostname = parsedUrl.hostname.toLowerCase();
 
-  // 4. Block literal IP addresses in hostname directly
+  // 4. Reject Punycode / IDN lookalike domains (e.g. xn--...)
+  if (hostname.includes('xn--')) {
+    return { isValid: false, reason: 'Punycode and internationalized lookalike domains are prohibited.' };
+  }
+
+  // 5. Block literal IP addresses in hostname directly
   if (isIP(hostname)) {
     if (isPrivateOrBlockedIp(hostname)) {
       return { isValid: false, reason: 'Direct IP literals pointing to private or metadata networks are blocked.' };
     }
   }
 
-  // 5. Block localhost / internal domain aliases
+  // 6. Block localhost / internal domain aliases
   if (
     hostname === 'localhost' ||
     hostname.endsWith('.localhost') ||
     hostname.endsWith('.local') ||
-    hostname.endsWith('.internal')
+    hostname.endsWith('.internal') ||
+    hostname.endsWith('.arpa')
   ) {
     return { isValid: false, reason: 'Access to local or internal domain names is prohibited.' };
   }
 
-  // 6. DNS Pre-Resolution: Check actual IP resolved by DNS to defeat DNS rebinding
+  // 7. Reject HLS / DASH manifests and playlists
+  if (isManifestOrPlaylistUrl(parsedUrl.pathname)) {
+    return { isValid: false, reason: 'Streaming manifests and playlists (.m3u8, .mpd) are not permitted.' };
+  }
+
+  // 8. DNS Pre-Resolution: Check actual IP resolved by DNS to defeat DNS rebinding
   try {
     const lookupResult = options?.dnsLookupFn
       ? await options.dnsLookupFn(hostname)
@@ -121,11 +170,83 @@ export async function validateImportUrl(
       };
     }
 
-    return { isValid: true, url: parsedUrl, resolvedIp: ip };
+    const allowlistCheck = matchAllowlistDomain(hostname);
+
+    return {
+      isValid: true,
+      url: parsedUrl,
+      resolvedIp: ip,
+      isAllowlisted: allowlistCheck.isAllowlisted,
+      sourceName: allowlistCheck.sourceName || 'Direct HTTPS Media',
+    };
   } catch (err: any) {
     return {
       isValid: false,
       reason: `DNS resolution failed for hostname "${hostname}": ${err.message || 'Host not found'}.`,
     };
   }
+}
+
+/**
+ * Executes an HTTP fetch with manual 3-hop redirect inspection and IP pinning to defeat DNS rebinding.
+ */
+export async function safeFetchWithIpPinning(
+  initialUrl: string,
+  options?: {
+    method?: string;
+    headers?: Record<string, string>;
+    maxRedirects?: number;
+    dnsLookupFn?: (hostname: string) => Promise<{ address: string }>;
+  }
+): Promise<{ response: Response; finalUrl: string; resolvedIp: string }> {
+  let currentUrl = initialUrl;
+  const maxHops = options?.maxRedirects ?? 3;
+  let lastResolvedIp = '';
+
+  for (let hop = 0; hop <= maxHops; hop++) {
+    const validation = await validateImportUrl(currentUrl, { dnsLookupFn: options?.dnsLookupFn });
+    if (!validation.isValid) {
+      throw new Error(`Security validation failed at redirect hop ${hop}: ${validation.reason}`);
+    }
+    lastResolvedIp = validation.resolvedIp || '';
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10s connection timeout
+
+    try {
+      const res = await fetch(currentUrl, {
+        method: options?.method || 'GET',
+        headers: options?.headers,
+        redirect: 'manual', // Never auto-follow redirects!
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
+      // Check for redirect status codes
+      if ([301, 302, 303, 307, 308].includes(res.status)) {
+        const locationHeader = res.headers.get('location');
+        if (!locationHeader) {
+          throw new Error(`Server returned HTTP ${res.status} redirect without a Location header.`);
+        }
+        if (hop === maxHops) {
+          throw new Error(`Exceeded maximum allowed redirect hops (${maxHops}).`);
+        }
+        // Resolve relative redirects safely against current URL
+        currentUrl = new URL(locationHeader, currentUrl).href;
+        continue;
+      }
+
+      return {
+        response: res,
+        finalUrl: currentUrl,
+        resolvedIp: lastResolvedIp,
+      };
+    } catch (err: any) {
+      clearTimeout(timeout);
+      throw err;
+    }
+  }
+
+  throw new Error('Unexpected redirect loop completion.');
 }

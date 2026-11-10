@@ -148,6 +148,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         },
       },
       {
+        id: 'mp4-to-mp3',
+        title: 'MP4 to MP3 Audio Extractor',
+        category: 'tools',
+        subtitle: 'Instant browser-side MP3 conversion at 320kbps',
+        icon: <Music className="w-4 h-4 text-purple-400" />,
+        action: () => {
+          onNavigate('/mp4-to-mp3');
+          onClose();
+        },
+      },
+      {
         id: 'settings',
         title: 'System Settings',
         category: 'tools',
