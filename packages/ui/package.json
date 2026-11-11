@@ -14,7 +14,7 @@
     "@universal/conversion-core": "workspace:*",
     "@universal/i18n": "workspace:*",
     "framer-motion": "^12.4.7",
-    "lucide-react": "^0.475.0",
+    "lucide-react": "^0.577.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.0.1"
   },
