@@ -13,8 +13,8 @@
     "@universal/format-registry": "workspace:*",
     "@universal/conversion-core": "workspace:*",
     "@universal/i18n": "workspace:*",
-    "framer-motion": "^12.4.7",
-    "lucide-react": "^0.475.0",
+    "framer-motion": "^14.10.1",
+    "lucide-react": "^1.70.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^3.0.1"
   },
@@ -22,10 +22,10 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@universal/tsconfig": "workspace:*",
-    "next": "^15.1.0",
+    "next": "^16.4.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "typescript": "^5.7.2"
+    "typescript": "^7.0.2"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",

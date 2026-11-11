@@ -13,18 +13,18 @@
     "@universal/config-tailwind": "workspace:*",
     "@universal/job-contracts": "workspace:*",
     "@universal/ui": "workspace:*",
-    "lucide-react": "^0.475.0",
-    "next": "15.1.7",
+    "lucide-react": "^1.70.0",
+    "next": "16.4.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.13.4",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@universal/tsconfig": "workspace:*",
     "postcss": "^8.5.2",
     "tailwindcss": "^4.0.6",
-    "typescript": "^5.7.2"
+    "typescript": "^7.0.2"
   }
 }

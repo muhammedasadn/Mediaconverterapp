@@ -14,13 +14,13 @@
   "dependencies": {
     "@universal/format-registry": "workspace:*",
     "@universal/job-contracts": "workspace:*",
-    "bullmq": "^5.41.3",
-    "ioredis": "^5.5.0"
+    "bullmq": "^6.7.2",
+    "ioredis": "^6.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.13.4",
+    "@types/node": "^26.6.6",
     "@universal/tsconfig": "workspace:*",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^7.0.2"
   }
 }
