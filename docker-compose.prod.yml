@@ -88,7 +88,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    image: ghcr.io/muhammedasadn/universal-media-api:latest
+    image: ${IMAGE_API:-ghcr.io/muhammedasadn/mediaconverterapp-api}:${IMAGE_TAG:-latest}
     container_name: converter-api
     restart: unless-stopped
     environment:
@@ -129,7 +129,7 @@ services:
     build:
       context: .
       dockerfile: apps/worker/Dockerfile
-    image: ghcr.io/muhammedasadn/universal-media-worker:latest
+    image: ${IMAGE_WORKER:-ghcr.io/muhammedasadn/mediaconverterapp-worker}:${IMAGE_TAG:-latest}
     container_name: converter-worker
     restart: unless-stopped
     environment:

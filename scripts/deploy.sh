@@ -7,7 +7,7 @@ set -euo pipefail
 
 ENV_FILE="${ENV_FILE:-.env}"
 COMPOSE_FILE="docker-compose.prod.yml"
-IMAGE_TAG="${1:-latest}"
+export IMAGE_TAG="${1:-latest}"
 PREVIOUS_TAG_FILE=".previous_image_tag"
 
 echo "========================================================"

@@ -107,6 +107,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production # Protected environment requiring manual approval
+    env:
+      VM_HOST: ${{ secrets.VM_HOST }}
+      VM_USER: ${{ secrets.VM_USER || 'converter' }}
+      VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -114,9 +118,6 @@ jobs:
       - name: Configure SSH and Execute Remote Zero-Downtime Deployment
         if: env.VM_HOST != ''
         env:
-          VM_HOST: ${{ secrets.VM_HOST }}
-          VM_USER: ${{ secrets.VM_USER || 'converter' }}
-          VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           mkdir -p ~/.ssh
