@@ -3,12 +3,12 @@
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
+    "dev": "turbo run dev --dangerously-disable-package-manager-check",
+    "build": "turbo run build --dangerously-disable-package-manager-check",
+    "lint": "turbo run lint --dangerously-disable-package-manager-check",
     "test": "node --experimental-strip-types --import ./scripts/test-loader.mjs --test packages/conversion-core/test/*.test.ts apps/worker/test/*.test.ts apps/api/test/*.test.ts",
     "test:unit": "node --experimental-strip-types --import ./scripts/test-loader.mjs --test packages/conversion-core/test/*.test.ts apps/worker/test/*.test.ts apps/api/test/*.test.ts",
-    "typecheck": "turbo run typecheck",
+    "typecheck": "turbo run typecheck --dangerously-disable-package-manager-check",
     "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
