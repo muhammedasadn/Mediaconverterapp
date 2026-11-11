@@ -38,6 +38,7 @@ RUN mkdir -p /var/lib/media-storage/uploads /var/lib/media-storage/output && \
 
 COPY --from=builder --chown=appuser:appgroup /app/apps/worker/dist ./dist
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup /app/packages ./packages
 COPY --from=builder --chown=appuser:appgroup /app/apps/worker/package.json ./package.json
 
 USER appuser

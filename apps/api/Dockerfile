@@ -35,6 +35,7 @@ RUN mkdir -p /var/lib/media-storage/uploads /var/lib/media-storage/output && \
 
 COPY --from=builder --chown=appuser:appgroup /app/apps/api/dist ./dist
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup /app/packages ./packages
 COPY --from=builder --chown=appuser:appgroup /app/apps/api/package.json ./package.json
 
 USER appuser
@@ -44,4 +45,4 @@ EXPOSE 4000
 HEALTHCHECK --interval=15s --timeout=5s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:4000/api/health || exit 1
 
-CMD ["node", "dist/server.js"]
+CMD ["node", "dist/apps/api/src/server.js"]
